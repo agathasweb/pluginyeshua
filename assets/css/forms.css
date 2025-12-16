@@ -1,0 +1,489 @@
+/**
+ * YESHUA Conversões - Form Styles
+ * Mobile-first design with Tailwind-inspired classes
+ */
+
+/* Variables */
+:root {
+    --yeshua-form-primary: #6366f1;
+    --yeshua-form-primary-dark: #4f46e5;
+    --yeshua-form-whatsapp: #25D366;
+    --yeshua-form-whatsapp-dark: #128C7E;
+    --yeshua-form-danger: #ef4444;
+    --yeshua-form-success: #10b981;
+    --yeshua-form-dark: #1f2937;
+    --yeshua-form-light: #f9fafb;
+    --yeshua-form-border: #d1d5db;
+    --yeshua-form-text: #374151;
+    --yeshua-form-text-light: #6b7280;
+    --yeshua-form-radius: 12px;
+    --yeshua-form-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Modal Base */
+.yeshua-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.yeshua-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    animation: yeshuaFadeIn 0.2s ease-out;
+}
+
+.yeshua-modal-container {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    animation: yeshuaSlideUp 0.3s ease-out;
+}
+
+.yeshua-modal-content {
+    background: white;
+    border-radius: var(--yeshua-form-radius);
+    box-shadow: var(--yeshua-form-shadow);
+    padding: 10px;
+    position: relative;
+}
+
+/* Close Button */
+.yeshua-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--yeshua-form-light);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--yeshua-form-text-light);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.yeshua-modal-close:hover {
+    background: var(--yeshua-form-danger);
+    color: white;
+}
+
+/* Modal Header */
+.yeshua-modal-header {
+    padding: 0px;
+    text-align: center;
+    margin-bottom: 0px;
+}
+
+.yeshua-modal-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.yeshua-modal-icon-whatsapp {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white;
+}
+
+.yeshua-modal-icon-lead {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+}
+
+/* Quando há logo, remove o estilo redondo do container */
+.yeshua-modal-icon.yeshua-modal-logo {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+    border-radius: 0 !important;
+    width: auto;
+    height: auto;
+    max-width: 200px;
+    display: block;
+}
+
+.yeshua-modal-logo img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 64px;
+    object-fit: contain;
+    border-radius: 0 !important;
+    display: block;
+    margin: 0 auto;
+}
+
+.yeshua-modal-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--yeshua-form-dark);
+    margin: 0 0 8px 0;
+}
+
+.yeshua-modal-subtitle {
+    font-size: 14px;
+    color: var(--yeshua-form-text-light);
+    margin: 0;
+}
+
+/* Form Styles */
+.yeshua-form {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.yeshua-form-group {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.yeshua-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--yeshua-form-text);
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.yeshua-required {
+    color: var(--yeshua-form-danger);
+}
+
+.yeshua-input,
+.yeshua-textarea,
+.yeshua-select {
+    flex: 1;
+    min-width: 150px;
+    padding: 12px 16px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--yeshua-form-dark);
+    background: white;
+    border: 2px solid var(--yeshua-form-border);
+    border-radius: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.yeshua-input:focus,
+.yeshua-textarea:focus,
+.yeshua-select:focus {
+    outline: none;
+    border-color: var(--yeshua-form-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.yeshua-input.yeshua-input-error,
+.yeshua-textarea.yeshua-input-error,
+.yeshua-select.yeshua-input-error {
+    border-color: var(--yeshua-form-danger);
+}
+
+.yeshua-input::placeholder {
+    color: var(--yeshua-form-text-light);
+}
+
+.yeshua-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.yeshua-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    padding-right: 44px;
+}
+
+/* Error Message */
+.yeshua-error-message {
+    font-size: 12px;
+    color: var(--yeshua-form-danger);
+    min-height: 16px;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 4px;
+    flex-basis: 100%;
+    order: 3;
+}
+
+/* ReCaptcha Container */
+.yeshua-recaptcha-container {
+    display: flex;
+    justify-content: center;
+    align-items: center !important;
+}
+
+.yeshua-recaptcha-container .g-recaptcha {
+    transform-origin: center;
+}
+
+@media screen and (max-width: 340px) {
+    .yeshua-recaptcha-container .g-recaptcha {
+        transform: scale(0.9);
+    }
+}
+
+/* Submit Button */
+.yeshua-submit-btn {
+    width: 100% !important;
+    padding: 14px 20px !important;
+    background: #25D366 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+}
+
+.yeshua-submit-btn-whatsapp {
+    background: #25D366 !important;
+}
+
+.yeshua-submit-btn-whatsapp:hover:not(:disabled) {
+    background: #1ebe5b !important;
+    transform: translateY(-1px);
+}
+
+.yeshua-submit-btn-lead {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+.yeshua-submit-btn-lead:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    transform: translateY(-1px);
+}
+
+.yeshua-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Botão flutuante WhatsApp - seguindo layout do style.min.css */
+button#yeshua-whatsapp-fab,
+button#yeshua-whatsapp-fab[type="button"],
+#yeshua-whatsapp-fab.yeshua-whatsapp-fab {
+    position: fixed !important;
+    bottom: 18px;
+    right: 18px;
+    display: inline-block !important;
+    font-weight: 400 !important;
+    color: #fff !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    user-select: none !important;
+    background-color: transparent !important;
+    background: linear-gradient(135deg, #25D366, #128C7E) !important;
+    border: 1px solid #fff !important;
+    padding: .5rem 1rem !important;
+    font-size: 1rem !important;
+    border-radius: 50% !important;
+    transition: all .3s !important;
+    width: 62px !important;
+    height: 62px !important;
+    padding: 0 !important;
+    box-shadow: 0 15px 25px -10px rgba(0, 0, 0, 0.35) !important;
+    cursor: pointer !important;
+    z-index: 2147480000 !important;
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+
+.yeshua-whatsapp-fab .yeshua-whatsapp-fab-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff !important;
+    width: 100%;
+    height: 100%;
+}
+
+.yeshua-whatsapp-fab svg {
+    width: 26px;
+    height: 26px;
+    color: #fff !important;
+    fill: #fff !important;
+    flex-shrink: 0;
+}
+
+.yeshua-whatsapp-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.4);
+}
+
+.yeshua-whatsapp-fab:focus-visible {
+    outline: 3px solid rgba(37, 211, 102, 0.3);
+    outline-offset: 2px;
+}
+
+.yeshua-whatsapp-fab-icon svg {
+    display: block;
+}
+
+.yeshua-whatsapp-fab.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.yeshua-modal-open .yeshua-whatsapp-fab {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@media screen and (max-width: 480px) {
+    .yeshua-whatsapp-fab {
+        width: 56px;
+        height: 56px;
+        bottom: 14px;
+        right: 14px;
+    }
+}
+
+.yeshua-btn-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.yeshua-spinner {
+    width: 20px;
+    height: 20px;
+    animation: yeshuaSpin 1s linear infinite;
+}
+
+/* Form Message */
+.yeshua-form-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.yeshua-form-message.yeshua-message-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.yeshua-form-message.yeshua-message-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Animations */
+@keyframes yeshuaFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes yeshuaSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes yeshuaSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Utility Classes (Tailwind-style) */
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.opacity-75 {
+    opacity: 0.75;
+}
+
+.opacity-25 {
+    opacity: 0.25;
+}
+
+.cursor-not-allowed {
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media screen and (min-width: 640px) {
+    .yeshua-modal-content {
+        padding: 10px;
+    }
+    
+    .yeshua-modal-title {
+        font-size: 24px;
+    }
+
+    .yeshua-whatsapp-fab {
+        bottom: 24px;
+        right: 24px;
+    }
+}
+
+/* Ensure modal works well with various themes */
+.yeshua-modal * {
+    box-sizing: border-box;
+}
+
+.yeshua-modal input,
+.yeshua-modal textarea,
+.yeshua-modal select,
+.yeshua-modal button {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+
+
+
+
