@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('YESHUA_VERSION', '1.0.0');
+define('YESHUA_VERSION', '1.5.0');
 define('YESHUA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('YESHUA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('YESHUA_PLUGIN_BASENAME', plugin_basename(__FILE__));
