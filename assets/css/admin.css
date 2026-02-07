@@ -1,0 +1,432 @@
+/**
+ * YESHUA Conversões - Admin Styles
+ */
+
+/* Variables */
+:root {
+    --yeshua-primary: #6366f1;
+    --yeshua-primary-dark: #4f46e5;
+    --yeshua-secondary: #10b981;
+    --yeshua-danger: #ef4444;
+    --yeshua-warning: #f59e0b;
+    --yeshua-info: #3b82f6;
+    --yeshua-dark: #1f2937;
+    --yeshua-light: #f9fafb;
+    --yeshua-border: #e5e7eb;
+    --yeshua-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --yeshua-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --yeshua-radius: 8px;
+}
+
+/* Admin Header */
+.yeshua-admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--yeshua-border);
+}
+
+.yeshua-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.yeshua-logo .dashicons {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: var(--yeshua-primary);
+}
+
+.yeshua-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--yeshua-dark);
+}
+
+.yeshua-version {
+    background: var(--yeshua-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Cards */
+.yeshua-card {
+    background: #fff;
+    border: 1px solid var(--yeshua-border);
+    border-radius: var(--yeshua-radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--yeshua-shadow);
+}
+
+.yeshua-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--yeshua-dark);
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--yeshua-border);
+}
+
+.yeshua-card-title .dashicons {
+    color: var(--yeshua-primary);
+}
+
+.yeshua-card-info {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-color: #bae6fd;
+}
+
+.yeshua-card-info .yeshua-card-title {
+    border-bottom-color: #bae6fd;
+}
+
+/* Input Group */
+.yeshua-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.yeshua-input-group .regular-text {
+    flex: 1;
+}
+
+/* Toggle Switch */
+.yeshua-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.yeshua-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.yeshua-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.yeshua-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: var(--yeshua-shadow);
+}
+
+.yeshua-toggle input:checked + .yeshua-toggle-slider {
+    background-color: var(--yeshua-secondary);
+}
+
+.yeshua-toggle input:checked + .yeshua-toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.yeshua-toggle-small {
+    width: 40px;
+    height: 22px;
+}
+
+.yeshua-toggle-small .yeshua-toggle-slider:before {
+    height: 16px;
+    width: 16px;
+}
+
+.yeshua-toggle-small input:checked + .yeshua-toggle-slider:before {
+    transform: translateX(18px);
+}
+
+/* Status Grid */
+.yeshua-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.yeshua-status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: var(--yeshua-light);
+    border-radius: 6px;
+}
+
+.yeshua-status-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.yeshua-status-value {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.yeshua-status-value.status-ok {
+    color: var(--yeshua-secondary);
+}
+
+.yeshua-status-value.status-warning {
+    color: var(--yeshua-warning);
+}
+
+.yeshua-status-value.status-error {
+    color: var(--yeshua-danger);
+}
+
+/* Status Message */
+.yeshua-status-message {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.yeshua-status-message.status-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.yeshua-status-message.status-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.yeshua-status-message.status-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+/* Repeater */
+.yeshua-repeater {
+    margin-bottom: 16px;
+}
+
+.yeshua-repeater-item {
+    background: var(--yeshua-light);
+    border: 1px solid var(--yeshua-border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.yeshua-repeater-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.yeshua-field {
+    flex: 1;
+    min-width: 150px;
+}
+
+.yeshua-field-wide {
+    flex: 2;
+    min-width: 250px;
+}
+
+.yeshua-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.yeshua-field select,
+.yeshua-field input {
+    width: 100%;
+}
+
+.yeshua-remove-item {
+    flex-shrink: 0;
+    color: var(--yeshua-danger) !important;
+    border-color: var(--yeshua-danger) !important;
+}
+
+.yeshua-remove-item:hover {
+    background: var(--yeshua-danger) !important;
+    color: #fff !important;
+}
+
+/* Info List */
+.yeshua-info-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.yeshua-info-list li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+/* Info Grid */
+.yeshua-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.yeshua-info-item {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+}
+
+.yeshua-info-item h4 {
+    margin: 0 0 8px 0;
+    color: var(--yeshua-primary);
+    font-size: 14px;
+}
+
+.yeshua-info-item p {
+    margin: 0;
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+/* Range Input */
+.yeshua-range {
+    width: 200px;
+    vertical-align: middle;
+}
+
+#yeshua-threshold-value {
+    display: inline-block;
+    min-width: 30px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--yeshua-primary);
+    margin-left: 10px;
+}
+
+/* Buttons */
+.yeshua-admin .button .dashicons {
+    vertical-align: middle;
+    margin-right: 4px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+}
+
+/* Form Table Adjustments */
+.yeshua-admin .form-table th {
+    padding-top: 16px;
+}
+
+.yeshua-admin .form-table td {
+    padding-top: 12px;
+}
+
+/* Pre/Code */
+.yeshua-admin pre {
+    background: #1f2937;
+    color: #e5e7eb;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13px;
+}
+
+.yeshua-admin code {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.yeshua-media-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 520px;
+}
+
+.yeshua-media-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.yeshua-image-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 1px;
+}
+
+.yeshua-image-preview img {
+    max-width: 140px;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--yeshua-border);
+    box-shadow: var(--yeshua-shadow);
+    background: #fff;
+    padding: 4px;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .yeshua-admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .yeshua-input-group {
+        flex-direction: column;
+    }
+    
+    .yeshua-repeater-row {
+        flex-direction: column;
+    }
+    
+    .yeshua-field,
+    .yeshua-field-wide {
+        min-width: 100%;
+    }
+    
+    .yeshua-status-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+
+

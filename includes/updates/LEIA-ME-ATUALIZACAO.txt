@@ -1,0 +1,36 @@
+INSTRUÇÕES PARA ATIVAR ATUALIZAÇÃO AUTOMÁTICA
+============================================
+
+Para que a atualização automática via GitHub funcione, você precisa instalar a biblioteca "Plugin Update Checker".
+
+PASSO 1: BAIXAR A BIBLIOTECA
+---------------------------
+1. Acesse: https://github.com/YahnisElsts/plugin-update-checker/releases
+2. Baixe a versão mais recente (.zip).
+
+PASSO 2: INSTALAR NO PLUGIN
+--------------------------
+1. Extraia o conteúdo do arquivo ZIP baixado.
+2. Copie TODOS os arquivos extraídos para dentro desta pasta:
+   /wp-content/plugins/yeshua-conversoes/includes/updates/
+
+   A estrutura final deve ficar parecida com:
+   /includes/updates/plugin-update-checker.php
+   /includes/updates/Puc/v4/Factory.php
+   ... e outros arquivos.
+
+PASSO 3: CONFIGURAR O REPOSITÓRIO
+--------------------------------
+1. Abra o arquivo principal do plugin: `yeshua-conversoes.php`.
+2. Procure pela função `init_update_checker`.
+3. Altere a URL 'https://github.com/AgathasWeb/yeshua-conversoes' para a URL real do seu repositório no GitHub.
+
+PASSO 4: CRIAR RELEASES (IMPORTANTE)
+-----------------------------------
+Para que o WordPress detecte uma nova versão:
+1. Atualize a versão no arquivo `yeshua-conversoes.php` (ex: de 1.0.0 para 1.0.1).
+2. Faça o commit e push para o GitHub.
+3. No GitHub, crie uma "Release" com a tag igual à versão (ex: v1.0.1).
+4. O WordPress irá detectar a nova versão automaticamente no painel de plugins.
+
+Observação: Se o repositório for PRIVADO, você precisará descomentar a linha de autenticação no código e adicionar um token de acesso do GitHub.
