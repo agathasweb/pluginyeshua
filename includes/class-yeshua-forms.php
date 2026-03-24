@@ -508,6 +508,7 @@ class Yeshua_Forms {
                 'error' => __('Erro ao enviar. Tente novamente.', 'yeshua-conversoes'),
                 'recaptchaRequired' => __('Por favor, complete o ReCaptcha', 'yeshua-conversoes'),
             ],
+            'gtm' => Yeshua_Gtm::get_form_conversion_config(),
         ];
     }
     
@@ -624,11 +625,14 @@ class Yeshua_Forms {
         $api = Yeshua_Api::get_instance();
         if ($api->is_configured()) {
             $api_result = $api->register_lead($lead_data);
-            
+
             if (!isset($api_result['success']) || !$api_result['success']) {
-                // Log do erro mas continua o processamento
-                error_log('YESHUA API Error: ' . print_r($api_result, true));
+                error_log('YESHUA API Error (form ' . $form_type . '): ' . wp_json_encode($api_result));
+            } else {
+                error_log('YESHUA API Lead registered (form ' . $form_type . '): ID=' . ($api_result['data']['id'] ?? 'N/A'));
             }
+        } else {
+            error_log('YESHUA API not configured - lead NOT registered. API Key: ' . ($api->get_api_key() ? 'SET' : 'EMPTY') . ', Website ID: ' . ($api->get_website_id() ?: 'EMPTY'));
         }
         
         // Prepara dados para mensagens

@@ -387,6 +387,9 @@
             if (result.success) {
                 showFormMessage(form, result.message, 'success');
 
+                // Fire GTM/GA4/Ads conversion events
+                fireConversionEvents(data.form_type || 'lead', data);
+
                 // Handle redirect
                 if (result.redirect) {
                     setTimeout(function() {
@@ -409,6 +412,117 @@
             showFormMessage(form, config.i18n.error, 'error');
         } finally {
             setFormLoading(form, false);
+        }
+    }
+
+    /**
+     * Hash a string with SHA-256 for Enhanced Conversions
+     * @param {string} value - Value to hash
+     * @returns {Promise<string>} - Hex-encoded SHA-256 hash
+     */
+    async function sha256Hash(value) {
+        if (!value || typeof crypto === 'undefined' || !crypto.subtle) return '';
+        var normalized = value.trim().toLowerCase();
+        if (!normalized) return '';
+        var encoder = new TextEncoder();
+        var data = encoder.encode(normalized);
+        var hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        var hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    }
+
+    /**
+     * Build Enhanced Conversions user data (hashed)
+     * @param {Object} formData - Form data with email, whatsapp/telefone, nome
+     * @returns {Promise<Object>} - Hashed user data for Enhanced Conversions
+     */
+    async function buildEnhancedConversionsData(formData) {
+        var userData = {};
+        var email = formData.email || '';
+        var phone = formData.whatsapp || formData.telefone || '';
+        var nome = formData.nome || '';
+
+        if (email) {
+            userData.sha256_email_address = await sha256Hash(email);
+        }
+        if (phone) {
+            // Normalize: remove non-digits, add country code
+            var digits = phone.replace(/\D/g, '');
+            if (digits.length <= 11) digits = '55' + digits;
+            userData.sha256_phone_number = await sha256Hash('+' + digits);
+        }
+        if (nome) {
+            var parts = nome.trim().split(/\s+/);
+            if (parts.length >= 1) {
+                userData.sha256_first_name = await sha256Hash(parts[0]);
+            }
+            if (parts.length >= 2) {
+                userData.sha256_last_name = await sha256Hash(parts[parts.length - 1]);
+            }
+        }
+        return userData;
+    }
+
+    /**
+     * Fire conversion events on GTM/GA4/Google Ads
+     * @param {string} formType - 'whatsapp' or 'lead'
+     * @param {Object} formData - Submitted form data
+     */
+    async function fireConversionEvents(formType, formData) {
+        var gtm = config.gtm;
+        if (!gtm) return;
+
+        var eventData = {
+            event_category: 'form',
+            event_label: formType,
+            form_type: formType,
+            page_path: window.location.pathname
+        };
+
+        // Set Enhanced Conversions data (raw - GTM hashes automatically)
+        var ecData = {};
+        if (formData.email) ecData.email = formData.email;
+        var phone = formData.whatsapp || formData.telefone || '';
+        if (phone) {
+            var digits = phone.replace(/\D/g, '');
+            if (digits.length <= 11) digits = '55' + digits;
+            ecData.phone_number = '+' + digits;
+        }
+        if (formData.nome) {
+            var parts = formData.nome.trim().split(/\s+/);
+            if (parts.length >= 1) ecData.first_name = parts[0];
+            if (parts.length >= 2) ecData.last_name = parts[parts.length - 1];
+        }
+        window.enhanced_conversion_data = ecData;
+
+        // dataLayer push for GTM (SYNC - must happen before any await)
+        if (gtm.gtm_id) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(Object.assign({
+                event: 'generate_lead'
+            }, eventData));
+            window.dataLayer.push(Object.assign({event: 'form_submission'}, eventData));
+        }
+
+        // GA4 gtag event (when no GTM)
+        if (gtm.ga4_id && !gtm.gtm_id && typeof gtag === 'function') {
+            gtag('event', 'generate_lead', eventData);
+        }
+
+        // Google Ads conversion with Enhanced Conversions (when no GTM)
+        if (gtm.gads_id && gtm.gads_label && !gtm.gtm_id && typeof gtag === 'function') {
+            var enhancedData = await buildEnhancedConversionsData(formData);
+            gtag('set', 'user_data', {
+                sha256_email_address: enhancedData.sha256_email_address || '',
+                sha256_phone_number: enhancedData.sha256_phone_number || '',
+                address: {
+                    sha256_first_name: enhancedData.sha256_first_name || '',
+                    sha256_last_name: enhancedData.sha256_last_name || ''
+                }
+            });
+            gtag('event', 'conversion', {
+                'send_to': gtm.gads_id + '/' + gtm.gads_label
+            });
         }
     }
 

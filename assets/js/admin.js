@@ -132,8 +132,10 @@
                 }
             },
             error: function(xhr) {
-                console.error('Error fetching instances:', xhr);
-                alert('Erro ao buscar instâncias. Verifique as credenciais.');
+                const response = xhr.responseJSON || {};
+                const msg = response.message || 'Erro ao buscar instâncias. Verifique a URL e as credenciais.';
+                console.error('Error fetching instances:', msg, xhr);
+                alert(msg);
             },
             complete: function() {
                 $btn.prop('disabled', false).find('.dashicons').removeClass('spin');

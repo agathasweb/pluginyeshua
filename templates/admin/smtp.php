@@ -160,14 +160,14 @@ $smtp_to_email = get_option('yeshua_smtp_to_email', '');
                         <label for="yeshua_smtp_to_email"><?php _e('E-mail de Destino', 'yeshua-conversoes'); ?></label>
                     </th>
                     <td>
-                        <input type="email" 
-                               name="yeshua_smtp_to_email" 
-                               id="yeshua_smtp_to_email" 
-                               value="<?php echo esc_attr($smtp_to_email); ?>" 
+                        <input type="text"
+                               name="yeshua_smtp_to_email"
+                               id="yeshua_smtp_to_email"
+                               value="<?php echo esc_attr($smtp_to_email); ?>"
                                class="regular-text"
-                               placeholder="vendas@exemplo.com">
+                               placeholder="vendas@exemplo.com, gerente@exemplo.com">
                         <p class="description">
-                            <?php _e('E-mail que receberá as notificações de leads', 'yeshua-conversoes'); ?>
+                            <?php _e('E-mail que receberá as notificações de leads. Para múltiplos destinatários, separe com vírgula.', 'yeshua-conversoes'); ?>
                         </p>
                     </td>
                 </tr>

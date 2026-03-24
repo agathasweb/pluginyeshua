@@ -122,11 +122,21 @@ class Yeshua_Smtp {
     }
     
     /**
+     * Converte string de e-mails separados por vírgula em array
+     */
+    private function parse_recipients($to) {
+        if (is_array($to)) {
+            return $to;
+        }
+        return array_filter(array_map('trim', explode(',', $to)));
+    }
+
+    /**
      * Envia e-mail de teste
      */
     public function send_test($to = null) {
         $to = $to ?: $this->config['to_email'];
-        
+
         if (empty($to)) {
             return [
                 'success' => false,
@@ -141,14 +151,14 @@ class Yeshua_Smtp {
             get_bloginfo('name')
         );
         
-        return $this->send($to, $subject, $message);
+        return $this->send($this->parse_recipients($to), $subject, $message);
     }
-    
+
     /**
      * Envia notificação de lead
      */
     public function send_lead_notification($data, $template = null) {
-        $to = $this->config['to_email'];
+        $to = $this->parse_recipients($this->config['to_email']);
         
         if (empty($to)) {
             return [

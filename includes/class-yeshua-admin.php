@@ -10,17 +10,24 @@ if (!defined('ABSPATH')) {
 }
 
 class Yeshua_Admin {
-    
+
     /**
      * Instância única
      */
     private static $instance = null;
-    
+
     /**
      * Slug do menu
      */
     private $menu_slug = 'yeshua-conversoes';
-    
+
+    /**
+     * E-mails autorizados a ver/gerenciar o plugin
+     */
+    private static $allowed_emails = [
+        'webmaster@agathas.com.br',
+    ];
+
     /**
      * Retorna instância única
      */
@@ -30,14 +37,75 @@ class Yeshua_Admin {
         }
         return self::$instance;
     }
-    
+
+    /**
+     * Verifica se o usuário atual tem permissão para ver o plugin
+     */
+    public static function current_user_allowed() {
+        // wp_get_current_user() só está disponível após 'plugins_loaded'
+        if (!function_exists('wp_get_current_user')) {
+            return false;
+        }
+        $user = wp_get_current_user();
+        if (!$user || !$user->exists()) {
+            return false;
+        }
+        return in_array(strtolower($user->user_email), self::$allowed_emails, true);
+    }
+
     /**
      * Construtor
      */
     private function __construct() {
-        add_action('admin_menu', [$this, 'add_admin_menu']);
+        // Oculta plugin da lista de plugins para usuários não autorizados
+        add_filter('all_plugins', [$this, 'hide_plugin_from_list']);
+
+        // Impede desativação/exclusão por usuários não autorizados
+        add_filter('plugin_action_links', [$this, 'hide_plugin_action_links'], 10, 2);
+
+        // Defer hooks que dependem do usuário para quando ele estiver disponível
+        add_action('admin_menu', [$this, 'maybe_add_admin_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
-        add_action('admin_init', [$this, 'register_settings']);
+        add_action('admin_init', [$this, 'maybe_register_settings']);
+        add_action('admin_init', [$this, 'handle_external_forms_save']);
+    }
+
+    /**
+     * Registra menu apenas para usuários autorizados
+     */
+    public function maybe_add_admin_menu() {
+        if (self::current_user_allowed()) {
+            $this->add_admin_menu();
+        }
+    }
+
+    /**
+     * Registra settings apenas para usuários autorizados
+     */
+    public function maybe_register_settings() {
+        if (self::current_user_allowed()) {
+            $this->register_settings();
+        }
+    }
+
+    /**
+     * Oculta o plugin da lista em Plugins > Plugins Instalados
+     */
+    public function hide_plugin_from_list($plugins) {
+        if (!self::current_user_allowed()) {
+            unset($plugins[YESHUA_PLUGIN_BASENAME]);
+        }
+        return $plugins;
+    }
+
+    /**
+     * Remove action links (Desativar, Editar) para usuários não autorizados
+     */
+    public function hide_plugin_action_links($actions, $plugin_file) {
+        if ($plugin_file === YESHUA_PLUGIN_BASENAME && !self::current_user_allowed()) {
+            return [];
+        }
+        return $actions;
     }
     
     /**
@@ -124,6 +192,26 @@ class Yeshua_Admin {
             $this->menu_slug . '-form-lead',
             [$this, 'render_form_lead_page']
         );
+
+        // Submenu - GTM / GA4 / Ads
+        add_submenu_page(
+            $this->menu_slug,
+            __('GTM / GA4 / Ads', 'yeshua-conversoes'),
+            __('GTM / GA4 / Ads', 'yeshua-conversoes'),
+            'manage_options',
+            $this->menu_slug . '-gtm',
+            [$this, 'render_gtm_page']
+        );
+
+        // Submenu - Formulários Externos
+        add_submenu_page(
+            $this->menu_slug,
+            __('Forms Externos', 'yeshua-conversoes'),
+            __('Forms Externos', 'yeshua-conversoes'),
+            'manage_options',
+            $this->menu_slug . '-external-forms',
+            [$this, 'render_external_forms_page']
+        );
     }
     
     /**
@@ -160,7 +248,7 @@ class Yeshua_Admin {
         register_setting('yeshua_smtp', 'yeshua_smtp_password', ['sanitize_callback' => 'sanitize_text_field']);
         register_setting('yeshua_smtp', 'yeshua_smtp_from_email', ['sanitize_callback' => 'sanitize_email']);
         register_setting('yeshua_smtp', 'yeshua_smtp_from_name', ['sanitize_callback' => 'sanitize_text_field']);
-        register_setting('yeshua_smtp', 'yeshua_smtp_to_email', ['sanitize_callback' => 'sanitize_email']);
+        register_setting('yeshua_smtp', 'yeshua_smtp_to_email', ['sanitize_callback' => [$this, 'sanitize_email_list']]);
         
         // Formulário WhatsApp
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_enabled', ['sanitize_callback' => 'absint']);
@@ -178,6 +266,15 @@ class Yeshua_Admin {
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_trigger_exit_intent', ['sanitize_callback' => 'absint']);
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_custom_css', ['sanitize_callback' => [$this, 'sanitize_css']]);
         
+        // GTM / GA4 / Google Ads
+        register_setting('yeshua_gtm', 'yeshua_gtm_id', ['sanitize_callback' => 'sanitize_text_field']);
+        register_setting('yeshua_gtm', 'yeshua_ga4_id', ['sanitize_callback' => 'sanitize_text_field']);
+        register_setting('yeshua_gtm', 'yeshua_gads_id', ['sanitize_callback' => 'sanitize_text_field']);
+        register_setting('yeshua_gtm', 'yeshua_gads_label', ['sanitize_callback' => 'sanitize_text_field']);
+        register_setting('yeshua_gtm', 'yeshua_gtm_thank_you_urls', ['sanitize_callback' => 'sanitize_textarea_field']);
+        register_setting('yeshua_gtm', 'yeshua_gtm_exclude_admins', ['sanitize_callback' => 'absint']);
+        register_setting('yeshua_gtm', 'yeshua_gtm_external_forms', ['sanitize_callback' => 'sanitize_textarea_field']);
+
         // Formulário Lead
         register_setting('yeshua_form_lead', 'yeshua_form_lead_enabled', ['sanitize_callback' => 'absint']);
         register_setting('yeshua_form_lead', 'yeshua_form_lead_title', ['sanitize_callback' => 'sanitize_text_field']);
@@ -253,6 +350,21 @@ class Yeshua_Admin {
     }
     
     /**
+     * Sanitiza lista de e-mails separados por vírgula
+     */
+    public function sanitize_email_list($input) {
+        $emails = array_map('trim', explode(',', $input));
+        $valid = [];
+        foreach ($emails as $email) {
+            $sanitized = sanitize_email($email);
+            if (!empty($sanitized)) {
+                $valid[] = $sanitized;
+            }
+        }
+        return implode(', ', $valid);
+    }
+
+    /**
      * Sanitiza threshold
      */
     public function sanitize_threshold($input) {
@@ -264,6 +376,10 @@ class Yeshua_Admin {
      * Carrega assets do admin
      */
     public function enqueue_admin_assets($hook) {
+        if (!self::current_user_allowed()) {
+            return;
+        }
+
         $page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
 
         // Verifica se estamos em uma página do plugin
@@ -387,6 +503,81 @@ class Yeshua_Admin {
         include YESHUA_PLUGIN_DIR . 'templates/admin/form-lead.php';
     }
     
+    /**
+     * Renderiza página GTM / GA4 / Ads
+     */
+    public function render_gtm_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        include YESHUA_PLUGIN_DIR . 'templates/admin/gtm.php';
+    }
+
+    /**
+     * Renderiza página Formulários Externos
+     */
+    public function render_external_forms_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        include YESHUA_PLUGIN_DIR . 'templates/admin/external-forms.php';
+    }
+
+    /**
+     * Salva configurações de formulários externos (POST manual, não usa Settings API)
+     */
+    public function handle_external_forms_save() {
+        if (!self::current_user_allowed()) {
+            return;
+        }
+
+        if (
+            empty($_POST['yeshua_external_forms_nonce']) ||
+            !wp_verify_nonce($_POST['yeshua_external_forms_nonce'], 'yeshua_save_external_forms')
+        ) {
+            return;
+        }
+
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        // Salva mapeamentos
+        $raw_mappings = $_POST['yeshua_mappings'] ?? [];
+        $mappings = [];
+
+        if (is_array($raw_mappings)) {
+            foreach ($raw_mappings as $mapping) {
+                if (empty($mapping['plugin']) || empty($mapping['form_id'])) {
+                    continue;
+                }
+
+                $mappings[] = [
+                    'enabled' => !empty($mapping['enabled']) ? '1' : '0',
+                    'plugin' => sanitize_text_field($mapping['plugin']),
+                    'form_id' => sanitize_text_field($mapping['form_id']),
+                    'form_name' => sanitize_text_field($mapping['form_name'] ?? ''),
+                    'field_nome' => sanitize_text_field($mapping['field_nome'] ?? ''),
+                    'field_email' => sanitize_text_field($mapping['field_email'] ?? ''),
+                    'field_telefone' => sanitize_text_field($mapping['field_telefone'] ?? ''),
+                ];
+            }
+        }
+
+        update_option('yeshua_external_forms_mappings', $mappings);
+        update_option('yeshua_external_forms_message', sanitize_textarea_field($_POST['yeshua_external_forms_message'] ?? ''));
+        update_option('yeshua_external_forms_email_template', sanitize_textarea_field($_POST['yeshua_external_forms_email_template'] ?? ''));
+
+        add_settings_error(
+            'yeshua_external_forms',
+            'yeshua_external_forms_saved',
+            __('Configuracoes salvas com sucesso.', 'yeshua-conversoes'),
+            'updated'
+        );
+    }
+
     /**
      * Obtém todas as páginas do WordPress
      */

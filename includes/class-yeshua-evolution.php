@@ -73,39 +73,40 @@ class Yeshua_Evolution {
                 'message' => __('URL da Evolution API não configurada', 'yeshua-conversoes'),
             ];
         }
-        
+
         $url = $this->api_url . '/' . ltrim($endpoint, '/');
-        
+
         $headers = [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
             'apikey' => $this->api_key,
         ];
-        
+
         $args = [
             'method' => $method,
             'timeout' => 30,
             'headers' => $headers,
+            'sslverify' => false,
         ];
-        
+
         if ($data !== null && $method !== 'GET') {
             $args['body'] = json_encode($data);
         }
-        
+
         $response = wp_remote_request($url, $args);
-        
+
         if (is_wp_error($response)) {
             return [
                 'success' => false,
                 'message' => $response->get_error_message(),
             ];
         }
-        
+
         $body = wp_remote_retrieve_body($response);
         $code = wp_remote_retrieve_response_code($response);
-        
+
         $decoded = json_decode($body, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             return [
                 'success' => $code >= 200 && $code < 300,
@@ -113,11 +114,21 @@ class Yeshua_Evolution {
                 'http_code' => $code,
             ];
         }
-        
-        return array_merge($decoded, [
-            'success' => $code >= 200 && $code < 300,
+
+        $is_success = $code >= 200 && $code < 300;
+
+        $is_assoc = is_array($decoded) && !empty($decoded) && array_keys($decoded) !== range(0, count($decoded) - 1);
+        if ($is_assoc) {
+            $decoded['success'] = $is_success;
+            $decoded['http_code'] = $code;
+            return $decoded;
+        }
+
+        return [
+            'success' => $is_success,
             'http_code' => $code,
-        ]);
+            'data' => $decoded,
+        ];
     }
     
     /**
@@ -125,26 +136,46 @@ class Yeshua_Evolution {
      */
     public function fetch_instances() {
         $response = $this->request('instance/fetchInstances');
-        
-        if (isset($response['success']) && $response['success']) {
-            // Retorna a lista de instâncias
-            if (is_array($response) && !isset($response['message'])) {
-                $instances = [];
-                foreach ($response as $key => $value) {
-                    if (is_array($value) && isset($value['instance'])) {
-                        $instances[] = $value['instance'];
-                    } elseif (is_array($value) && isset($value['instanceName'])) {
-                        $instances[] = [
-                            'instanceName' => $value['instanceName'],
-                            'status' => $value['status'] ?? 'unknown',
-                        ];
-                    }
-                }
-                return $instances;
+
+        if (!isset($response['success']) || !$response['success']) {
+            return [
+                'error' => true,
+                'message' => $response['message'] ?? __('Erro ao conectar com a Evolution API', 'yeshua-conversoes'),
+                'http_code' => $response['http_code'] ?? 0,
+            ];
+        }
+
+        $items = $response['data'] ?? $response;
+        if (!is_array($items)) {
+            return [
+                'error' => true,
+                'message' => __('Resposta inesperada da Evolution API', 'yeshua-conversoes'),
+            ];
+        }
+
+        $instances = [];
+        foreach ($items as $key => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+            $name = $value['instance']['instanceName']
+                ?? $value['instanceName']
+                ?? $value['name']
+                ?? null;
+            if ($name) {
+                $instances[] = [
+                    'instanceName' => $name,
+                    'status' => $value['instance']['status']
+                        ?? $value['connectionStatus']
+                        ?? $value['status']
+                        ?? 'unknown',
+                ];
             }
         }
-        
-        return [];
+
+        return [
+            'instances' => $instances,
+        ];
     }
     
     /**

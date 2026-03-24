@@ -89,6 +89,27 @@ class Yeshua_Rest_Api {
             'callback' => [__CLASS__, 'test_conversion'],
             'permission_callback' => [__CLASS__, 'admin_permission_check'],
         ]);
+
+        // Exportar container GTM
+        register_rest_route(self::NAMESPACE, '/export-gtm-container', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'export_gtm_container'],
+            'permission_callback' => [__CLASS__, 'admin_permission_check'],
+        ]);
+
+        // Formulários Externos - listar formulários de um plugin
+        register_rest_route(self::NAMESPACE, '/external-forms/forms', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'get_external_forms'],
+            'permission_callback' => [__CLASS__, 'admin_permission_check'],
+        ]);
+
+        // Formulários Externos - listar campos de um formulário
+        register_rest_route(self::NAMESPACE, '/external-forms/fields', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'get_external_form_fields'],
+            'permission_callback' => [__CLASS__, 'admin_permission_check'],
+        ]);
     }
     
     /**
@@ -228,18 +249,26 @@ class Yeshua_Rest_Api {
         $instance_prop->setValue(null, null);
         
         $evolution_api = Yeshua_Evolution::get_instance();
-        $instances = $evolution_api->fetch_instances();
-        
+        $result = $evolution_api->fetch_instances();
+
         // Restaura options
         update_option('yeshua_evolution_url', $old_url);
         update_option('yeshua_evolution_api_key', $old_key);
-        
+
         // Reset instance
         $instance_prop->setValue(null, null);
-        
+
+        if (isset($result['error']) && $result['error']) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $result['message'] ?? __('Erro ao buscar instâncias', 'yeshua-conversoes'),
+                'instances' => [],
+            ], 400);
+        }
+
         return new WP_REST_Response([
             'success' => true,
-            'instances' => $instances,
+            'instances' => $result['instances'] ?? [],
         ]);
     }
     
@@ -576,7 +605,63 @@ class Yeshua_Rest_Api {
         
         return new WP_REST_Response($response, $response['success'] ? 200 : 400);
     }
+
+    /**
+     * Exporta container GTM pré-configurado como JSON
+     */
+    public static function export_gtm_container($request) {
+        $container = Yeshua_Gtm::generate_gtm_container_json();
+
+        $site_name = sanitize_file_name(get_bloginfo('name'));
+        $filename = 'gtm-container-' . $site_name . '-' . date('Y-m-d') . '.json';
+
+        $response = new WP_REST_Response($container);
+        $response->header('Content-Type', 'application/json');
+        $response->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        return $response;
+    }
+
+    /**
+     * Lista formulários disponíveis de um plugin externo
+     */
+    public static function get_external_forms($request) {
+        $plugin = sanitize_text_field($request->get_param('plugin'));
+
+        if (empty($plugin)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => __('Plugin nao informado.', 'yeshua-conversoes'),
+            ], 400);
+        }
+
+        $forms = Yeshua_External_Forms::get_available_forms($plugin);
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $forms,
+        ]);
+    }
+
+    /**
+     * Lista campos de um formulário externo específico
+     */
+    public static function get_external_form_fields($request) {
+        $plugin = sanitize_text_field($request->get_param('plugin'));
+        $form_id = sanitize_text_field($request->get_param('form_id'));
+
+        if (empty($plugin) || empty($form_id)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => __('Plugin e form_id sao obrigatorios.', 'yeshua-conversoes'),
+            ], 400);
+        }
+
+        $fields = Yeshua_External_Forms::get_form_fields($plugin, $form_id);
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $fields,
+        ]);
+    }
 }
-
-
-
