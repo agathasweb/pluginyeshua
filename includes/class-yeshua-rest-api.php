@@ -124,30 +124,35 @@ class Yeshua_Rest_Api {
      */
     public static function validate_api($request) {
         $api_key = $request->get_param('api_key');
-        
+
         if (empty($api_key)) {
             return new WP_REST_Response([
                 'success' => false,
                 'message' => __('API Key não fornecida', 'yeshua-conversoes'),
             ], 400);
         }
-        
+
         $api = Yeshua_Api::get_instance();
-        $is_valid = $api->validate_api_key($api_key);
-        
+        $response = $api->request('websites', 'GET', [], $api_key);
+        $is_valid = isset($response['success']) && $response['success'] === true;
+
         if ($is_valid) {
             $websites = $api->get_websites($api_key);
-            
+
             return new WP_REST_Response([
                 'success' => true,
                 'message' => __('API Key válida', 'yeshua-conversoes'),
                 'websites' => $websites,
             ]);
         }
-        
+
+        // Retorna detalhes do erro para diagnóstico
+        $error_detail = $response['message'] ?? 'Sem detalhes';
+        $http_code = $response['http_code'] ?? 'N/A';
+
         return new WP_REST_Response([
             'success' => false,
-            'message' => __('API Key inválida', 'yeshua-conversoes'),
+            'message' => sprintf('Falha na validação: %s (HTTP %s | URL: %s)', $error_detail, $http_code, YESHUA_API_URL),
         ]);
     }
     
