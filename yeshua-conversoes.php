@@ -3,7 +3,7 @@
  * Plugin Name: YESHUA Conversões
  * Plugin URI: https://agathasweb.com
  * Description: Integração completa com API TLC do YESHUA para rastreamento de tráfego, leads e conversões. Inclui formulários modais, integração Evolution API (WhatsApp) e envio de e-mails.
- * Version: 1.5.2
+ * Version: 1.5.3
  * Author: Agathas Web
  * Author URI: https://agathasweb.com
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('YESHUA_VERSION', '1.5.2');
+define('YESHUA_VERSION', '1.5.3');
 define('YESHUA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('YESHUA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('YESHUA_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -64,9 +64,11 @@ final class Yeshua_Conversoes {
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-admin.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-tracking.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-evolution.php';
+        require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-gtm.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-smtp.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-recaptcha.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-forms.php';
+        require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-external-forms.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-rest-api.php';
     }
 
@@ -115,10 +117,14 @@ final class Yeshua_Conversoes {
         // Frontend
         if (!is_admin()) {
             Yeshua_Tracking::get_instance();
+            Yeshua_Gtm::get_instance();
         }
         
         // Forms - Carrega no frontend e também no admin para testes
         Yeshua_Forms::get_instance();
+
+        // External Forms - Hooks server-side para Elementor, CF7, WPForms, Gravity Forms
+        Yeshua_External_Forms::get_instance();
         
         // REST API
         add_action('rest_api_init', [$this, 'register_rest_routes']);
@@ -128,7 +134,11 @@ final class Yeshua_Conversoes {
      * Inicialização do plugin
      */
     public function init() {
-        // Inicializações adicionais se necessário
+        // Popula seletores de formulários externos se estiver vazio (upgrade de versões anteriores)
+        $selectors = get_option('yeshua_gtm_external_forms', '');
+        if (empty($selectors)) {
+            update_option('yeshua_gtm_external_forms', ".elementor-form\n.wpcf7-form\n.wpforms-form");
+        }
     }
     
     /**
@@ -190,6 +200,16 @@ final class Yeshua_Conversoes {
             'yeshua_form_lead_email_template' => "Novo lead capturado:\n\nNome: {nome}\nE-mail: {email}\nWhatsApp: {whatsapp}\n\n{campos_extras}",
             'yeshua_form_lead_success_message' => 'Obrigado! Entraremos em contato em breve.',
             'yeshua_form_lead_redirect' => '',
+            'yeshua_gtm_id' => '',
+            'yeshua_ga4_id' => '',
+            'yeshua_gads_id' => '',
+            'yeshua_gads_label' => '',
+            'yeshua_gtm_thank_you_urls' => '',
+            'yeshua_gtm_exclude_admins' => '1',
+            'yeshua_gtm_external_forms' => ".elementor-form\n.wpcf7-form\n.wpforms-form",
+            'yeshua_external_forms_mappings' => [],
+            'yeshua_external_forms_message' => '',
+            'yeshua_external_forms_email_template' => "Novo lead (formulario externo):\n\nNome: {nome}\nE-mail: {email}\nWhatsApp: {whatsapp}\nFormulario: {_formulario}\n\n{campos_extras}",
         ];
         
         foreach ($default_options as $key => $value) {

@@ -70,8 +70,9 @@ class Yeshua_Api {
         }
         
         $response = wp_remote_request($url, $args);
-        
+
         if (is_wp_error($response)) {
+            error_log('YESHUA API WP_Error [' . $method . ' ' . $url . ']: ' . $response->get_error_message());
             return [
                 'success' => false,
                 'message' => $response->get_error_message(),
@@ -101,7 +102,18 @@ class Yeshua_Api {
      */
     public function validate_api_key($api_key = null) {
         $response = $this->request('websites', 'GET', [], $api_key);
-        return isset($response['success']) && $response['success'] === true;
+        $is_valid = isset($response['success']) && $response['success'] === true;
+        if (!$is_valid) {
+            error_log('YESHUA validate_api_key FAILED: ' . wp_json_encode([
+                'response_success' => $response['success'] ?? 'NOT SET',
+                'response_message' => $response['message'] ?? 'NOT SET',
+                'http_code' => $response['http_code'] ?? 'NOT SET',
+                'raw' => $response['raw'] ?? null,
+                'api_url' => YESHUA_API_URL,
+                'key_prefix' => $api_key ? substr($api_key, 0, 10) . '...' : 'NULL',
+            ]));
+        }
+        return $is_valid;
     }
     
     /**
@@ -293,16 +305,18 @@ class Yeshua_Api {
      */
     public static function get_session_id() {
         $cookie_name = 'yeshua_session';
-        
+
         if (isset($_COOKIE[$cookie_name])) {
             return sanitize_text_field($_COOKIE[$cookie_name]);
         }
-        
+
         $session_id = wp_generate_uuid4();
-        
-        // Define cookie por 30 minutos
-        setcookie($cookie_name, $session_id, time() + 1800, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-        
+
+        // Define cookie por 30 minutos (somente se headers ainda não foram enviados)
+        if (!headers_sent()) {
+            setcookie($cookie_name, $session_id, time() + 1800, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+        }
+
         return $session_id;
     }
     
