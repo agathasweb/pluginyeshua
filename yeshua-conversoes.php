@@ -3,7 +3,7 @@
  * Plugin Name: YESHUA Conversões
  * Plugin URI: https://agathasweb.com
  * Description: Integração completa com API TLC do YESHUA para rastreamento de tráfego, leads e conversões. Inclui formulários modais, integração Evolution API (WhatsApp) e envio de e-mails.
- * Version: 1.5.8
+ * Version: 1.5.5
  * Author: Agathas Web
  * Author URI: https://agathasweb.com
  * License: GPL v2 or later
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('YESHUA_VERSION', '1.5.8');
+define('YESHUA_VERSION', '1.5.5');
 define('YESHUA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('YESHUA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('YESHUA_PLUGIN_BASENAME', plugin_basename(__FILE__));

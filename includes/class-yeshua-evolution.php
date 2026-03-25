@@ -217,14 +217,20 @@ class Yeshua_Evolution {
         
         $response = $this->request($endpoint, 'POST', $data);
         
-        // Se envio com sucesso e label configurada, adiciona etiqueta ao chat
-        $label_id = get_option('yeshua_evolution_label_id', '');
-        if (
-            isset($response['success']) &&
-            $response['success'] &&
-            !empty($label_id)
-        ) {
-            $this->add_label_to_chat($number, $label_id);
+        if (isset($response['success']) && $response['success']) {
+            $remoteJid = $response['key']['remoteJid'] ?? null;
+            $messageId = $response['key']['id'] ?? null;
+
+            // Tenta marcar como não lida
+            if ($remoteJid && $messageId) {
+                $this->mark_chat_unread($remoteJid, $messageId);
+            }
+
+            // Adiciona etiqueta ao chat se configurada
+            $label_id = get_option('yeshua_evolution_label_id', '');
+            if (!empty($label_id)) {
+                $this->add_label_to_chat($number, $label_id);
+            }
         }
 
         return $response;
@@ -315,6 +321,35 @@ class Yeshua_Evolution {
         
         return $url;
     }
+    /**
+     * Marca o chat como não lido via Evolution API (payload Baileys)
+     */
+    public function mark_chat_unread($remoteJid, $messageKeyId) {
+        if (!$this->is_configured()) {
+            return false;
+        }
+
+        $endpoint = 'chat/markChatUnread/' . $this->instance_name;
+
+        $data = [
+            'lastMessage' => [
+                'key' => [
+                    'remoteJid' => $remoteJid,
+                    'fromMe' => true,
+                    'id' => $messageKeyId,
+                ],
+            ],
+        ];
+
+        $response = $this->request($endpoint, 'POST', $data);
+
+        if (!isset($response['success']) || !$response['success']) {
+            error_log('[YESHUA Evolution] markChatUnread falhou: ' . wp_json_encode($response));
+        }
+
+        return isset($response['success']) && $response['success'];
+    }
+
     /**
      * Adiciona uma etiqueta/label ao chat via Evolution API
      */
