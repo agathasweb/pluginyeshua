@@ -230,6 +230,8 @@ class Yeshua_Evolution {
 
             if ($remoteJid && $messageId) {
                 $this->mark_chat_unread($remoteJid, $messageId);
+            } else {
+                error_log('[YESHUA Evolution] Não foi possível extrair remoteJid/messageId da resposta: ' . wp_json_encode($response));
             }
         }
 
@@ -330,20 +332,24 @@ class Yeshua_Evolution {
         }
 
         $endpoint = 'chat/markChatUnread/' . $this->instance_name;
-        
+
         $data = [
-            'readless' => true,
-             'lastMessage' => [
-                 'key' => [
-                     'remoteJid' => $remoteJid,
-                     'fromMe' => true,
-                     'id' => $messageKeyId
-                 ]
-             ]
+            'lastMessage' => [
+                [
+                    'remoteJid' => $remoteJid,
+                    'fromMe' => true,
+                    'id' => $messageKeyId,
+                ]
+            ],
+            'chat' => $remoteJid,
         ];
 
         $response = $this->request($endpoint, 'POST', $data);
-        
+
+        if (!isset($response['success']) || !$response['success']) {
+            error_log('[YESHUA Evolution] markChatUnread falhou: ' . wp_json_encode($response));
+        }
+
         return isset($response['success']) && $response['success'];
     }
 }
