@@ -335,11 +335,11 @@ class Yeshua_Evolution {
 
         $data = [
             'lastMessage' => [
-                [
+                'key' => [
                     'remoteJid' => $remoteJid,
                     'fromMe' => true,
                     'id' => $messageKeyId,
-                ]
+                ],
             ],
             'chat' => $remoteJid,
         ];
