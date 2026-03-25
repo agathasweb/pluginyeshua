@@ -232,7 +232,7 @@ class Yeshua_Admin {
         register_setting('yeshua_evolution', 'yeshua_evolution_api_key', ['sanitize_callback' => 'sanitize_text_field']);
         register_setting('yeshua_evolution', 'yeshua_evolution_instance', ['sanitize_callback' => 'sanitize_text_field']);
         register_setting('yeshua_evolution', 'yeshua_evolution_token', ['sanitize_callback' => 'sanitize_text_field']);
-        register_setting('yeshua_evolution', 'yeshua_evolution_mark_unread', ['sanitize_callback' => 'absint']);
+        register_setting('yeshua_evolution', 'yeshua_evolution_label_id', ['sanitize_callback' => 'sanitize_text_field']);
         
         // ReCaptcha
         register_setting('yeshua_recaptcha', 'yeshua_recaptcha_site_key', ['sanitize_callback' => 'sanitize_text_field']);

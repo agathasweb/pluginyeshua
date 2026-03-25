@@ -90,6 +90,13 @@ class Yeshua_Rest_Api {
             'permission_callback' => [__CLASS__, 'admin_permission_check'],
         ]);
 
+        // Buscar labels da Evolution API
+        register_rest_route(self::NAMESPACE, '/evolution-labels', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'get_evolution_labels'],
+            'permission_callback' => [__CLASS__, 'admin_permission_check'],
+        ]);
+
         // Exportar container GTM
         register_rest_route(self::NAMESPACE, '/export-gtm-container', [
             'methods' => 'GET',
@@ -277,6 +284,30 @@ class Yeshua_Rest_Api {
         ]);
     }
     
+    /**
+     * Busca labels da Evolution API
+     */
+    public static function get_evolution_labels($request) {
+        $evolution = Yeshua_Evolution::get_instance();
+
+        if (!$evolution->is_configured()) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => __('Evolution API não configurada', 'yeshua-conversoes'),
+            ], 400);
+        }
+
+        $labels = $evolution->fetch_labels();
+
+        // Cachear por 5 minutos
+        set_transient('yeshua_evolution_labels', $labels, 300);
+
+        return new WP_REST_Response([
+            'success' => true,
+            'labels' => $labels,
+        ]);
+    }
+
     /**
      * Testa conexão Evolution
      */

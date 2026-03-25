@@ -217,22 +217,14 @@ class Yeshua_Evolution {
         
         $response = $this->request($endpoint, 'POST', $data);
         
-        // Se envio com sucesso e configuração ativa, marca como não lida
+        // Se envio com sucesso e label configurada, adiciona etiqueta ao chat
+        $label_id = get_option('yeshua_evolution_label_id', '');
         if (
-            isset($response['success']) && 
-            $response['success'] && 
-            get_option('yeshua_evolution_mark_unread', '0') === '1'
+            isset($response['success']) &&
+            $response['success'] &&
+            !empty($label_id)
         ) {
-            // Tenta extrair dados da mensagem enviada
-            // Verifica estrutura da resposta (pode variar por versão)
-            $remoteJid = $response['key']['remoteJid'] ?? $response['response']['key']['remoteJid'] ?? null;
-            $messageId = $response['key']['id'] ?? $response['response']['key']['id'] ?? null;
-
-            if ($remoteJid && $messageId) {
-                $this->mark_chat_unread($remoteJid, $messageId);
-            } else {
-                error_log('[YESHUA Evolution] Não foi possível extrair remoteJid/messageId da resposta: ' . wp_json_encode($response));
-            }
+            $this->add_label_to_chat($number, $label_id);
         }
 
         return $response;
@@ -324,33 +316,49 @@ class Yeshua_Evolution {
         return $url;
     }
     /**
-     * Marca o chat como não lido
+     * Adiciona uma etiqueta/label ao chat via Evolution API
      */
-    public function mark_chat_unread($remoteJid, $messageKeyId) {
+    public function add_label_to_chat($number, $labelId) {
         if (!$this->is_configured()) {
             return false;
         }
 
-        $endpoint = 'chat/markChatUnread/' . $this->instance_name;
+        $endpoint = 'label/handleLabel/' . $this->instance_name;
 
         $data = [
-            'lastMessage' => [
-                'key' => [
-                    'remoteJid' => $remoteJid,
-                    'fromMe' => true,
-                    'id' => $messageKeyId,
-                ],
-            ],
-            'chat' => $remoteJid,
+            'number' => $number,
+            'labelId' => $labelId,
+            'action' => 'add',
         ];
 
         $response = $this->request($endpoint, 'POST', $data);
 
         if (!isset($response['success']) || !$response['success']) {
-            error_log('[YESHUA Evolution] markChatUnread falhou: ' . wp_json_encode($response));
+            error_log('[YESHUA Evolution] addLabel falhou: ' . wp_json_encode($response));
         }
 
         return isset($response['success']) && $response['success'];
+    }
+
+    /**
+     * Busca labels disponíveis na instância
+     */
+    public function fetch_labels() {
+        if (!$this->is_configured()) {
+            return [];
+        }
+
+        $response = $this->request('label/findLabels/' . $this->instance_name);
+
+        if (isset($response['data']) && is_array($response['data'])) {
+            return $response['data'];
+        }
+
+        if (is_array($response) && isset($response[0]['id'])) {
+            return $response;
+        }
+
+        return [];
     }
 }
 

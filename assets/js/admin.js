@@ -159,6 +159,52 @@
         }
     });
 
+    // Fetch Evolution Labels
+    $('#yeshua-fetch-labels').on('click', function() {
+        const $btn = $(this);
+
+        if (!hasRestConfig()) {
+            alert('Configuração do plugin não carregada. Recarregue a página.');
+            return;
+        }
+
+        $btn.prop('disabled', true).find('.dashicons').addClass('spin');
+
+        $.ajax({
+            url: adminConfig.restUrl + 'evolution-labels',
+            method: 'GET',
+            headers: {
+                'X-WP-Nonce': adminConfig.nonce
+            },
+            success: function(response) {
+                const $select = $('#yeshua_evolution_label_id');
+                const currentValue = $select.val();
+                $select.find('option:not(:first)').remove();
+
+                if (response.labels && response.labels.length > 0) {
+                    response.labels.forEach(function(label) {
+                        $select.append(
+                            $('<option></option>')
+                                .val(label.id)
+                                .text(label.name)
+                                .prop('selected', label.id === currentValue)
+                        );
+                    });
+                    alert('Encontradas ' + response.labels.length + ' etiqueta(s)!');
+                } else {
+                    alert('Nenhuma etiqueta encontrada. Crie etiquetas no WhatsApp Business primeiro.');
+                }
+            },
+            error: function(xhr) {
+                const response = xhr.responseJSON || {};
+                alert(response.message || 'Erro ao buscar etiquetas.');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).find('.dashicons').removeClass('spin');
+            }
+        });
+    });
+
     // Test Evolution Connection
     $('#yeshua-test-evolution').on('click', function() {
         const $btn = $(this);

@@ -124,17 +124,34 @@ $evolution_token = get_option('yeshua_evolution_token', '');
                 </tr>
 
                 <tr>
-                    <th scope="row"><?php _e('Comportamento', 'yeshua-conversoes'); ?></th>
+                    <th scope="row">
+                        <label for="yeshua_evolution_label_id"><?php _e('Etiqueta para Leads', 'yeshua-conversoes'); ?></label>
+                    </th>
                     <td>
-                        <fieldset>
-                            <label for="yeshua_evolution_mark_unread">
-                                <input name="yeshua_evolution_mark_unread" type="checkbox" id="yeshua_evolution_mark_unread" value="1" <?php checked('1', get_option('yeshua_evolution_mark_unread', '0')); ?>>
-                                <?php _e('Marcar conversa como não lida após enviar mensagem', 'yeshua-conversoes'); ?>
-                            </label>
-                            <p class="description">
-                                <?php _e('Isso fará com que a conversa fique marcada como não lida no WhatsApp do atendente, sinalizando a necessidade de atenção.', 'yeshua-conversoes'); ?>
-                            </p>
-                        </fieldset>
+                        <div class="yeshua-input-group">
+                            <select name="yeshua_evolution_label_id" id="yeshua_evolution_label_id" class="regular-text">
+                                <option value=""><?php _e('-- Nenhuma (desativado) --', 'yeshua-conversoes'); ?></option>
+                                <?php
+                                $current_label = get_option('yeshua_evolution_label_id', '');
+                                $cached_labels = get_transient('yeshua_evolution_labels');
+                                if ($cached_labels && is_array($cached_labels)) {
+                                    foreach ($cached_labels as $label) {
+                                        $selected = selected($current_label, $label['id'], false);
+                                        echo '<option value="' . esc_attr($label['id']) . '"' . $selected . '>' . esc_html($label['name']) . '</option>';
+                                    }
+                                } elseif (!empty($current_label)) {
+                                    echo '<option value="' . esc_attr($current_label) . '" selected>' . esc_html__('Label ID: ', 'yeshua-conversoes') . esc_html($current_label) . '</option>';
+                                }
+                                ?>
+                            </select>
+                            <button type="button" id="yeshua-fetch-labels" class="button">
+                                <span class="dashicons dashicons-tag"></span>
+                                <?php _e('Buscar Etiquetas', 'yeshua-conversoes'); ?>
+                            </button>
+                        </div>
+                        <p class="description">
+                            <?php _e('Após enviar mensagem ao lead, o chat receberá esta etiqueta no WhatsApp para sinalizar ao atendente.', 'yeshua-conversoes'); ?>
+                        </p>
                     </td>
                 </tr>
             </table>
