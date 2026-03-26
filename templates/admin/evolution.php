@@ -124,33 +124,20 @@ $evolution_token = get_option('yeshua_evolution_token', '');
                 </tr>
 
                 <tr>
-                    <th scope="row">
-                        <label for="yeshua_evolution_label_id"><?php _e('Etiqueta para Leads', 'yeshua-conversoes'); ?></label>
-                    </th>
+                    <th scope="row"><?php _e('Etiqueta de Leads', 'yeshua-conversoes'); ?></th>
                     <td>
-                        <div class="yeshua-input-group">
-                            <select name="yeshua_evolution_label_id" id="yeshua_evolution_label_id" class="regular-text">
-                                <option value=""><?php _e('-- Nenhuma (desativado) --', 'yeshua-conversoes'); ?></option>
-                                <?php
-                                $current_label = get_option('yeshua_evolution_label_id', '');
-                                $cached_labels = get_transient('yeshua_evolution_labels');
-                                if ($cached_labels && is_array($cached_labels)) {
-                                    foreach ($cached_labels as $label) {
-                                        $selected = selected($current_label, $label['id'], false);
-                                        echo '<option value="' . esc_attr($label['id']) . '"' . $selected . '>' . esc_html($label['name']) . '</option>';
-                                    }
-                                } elseif (!empty($current_label)) {
-                                    echo '<option value="' . esc_attr($current_label) . '" selected>' . esc_html__('Label ID: ', 'yeshua-conversoes') . esc_html($current_label) . '</option>';
-                                }
-                                ?>
-                            </select>
-                            <button type="button" id="yeshua-fetch-labels" class="button">
-                                <span class="dashicons dashicons-tag"></span>
-                                <?php _e('Buscar Etiquetas', 'yeshua-conversoes'); ?>
-                            </button>
-                        </div>
                         <p class="description">
-                            <?php _e('Após enviar mensagem ao lead, o chat receberá esta etiqueta no WhatsApp para sinalizar ao atendente.', 'yeshua-conversoes'); ?>
+                            <?php
+                            $cached_label_id = get_option('yeshua_evolution_leads_label_id', '');
+                            if (!empty($cached_label_id)) {
+                                printf(
+                                    __('Etiqueta "Leads" detectada (ID: %s). Conversas de leads serão etiquetadas automaticamente.', 'yeshua-conversoes'),
+                                    '<code>' . esc_html($cached_label_id) . '</code>'
+                                );
+                            } else {
+                                _e('Crie uma etiqueta chamada "Leads" no WhatsApp Business. O plugin detectará automaticamente na primeira mensagem enviada.', 'yeshua-conversoes');
+                            }
+                            ?>
                         </p>
                     </td>
                 </tr>

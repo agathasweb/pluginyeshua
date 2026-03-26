@@ -226,11 +226,8 @@ class Yeshua_Evolution {
                 $this->mark_chat_unread($remoteJid, $messageId);
             }
 
-            // Adiciona etiqueta ao chat se configurada
-            $label_id = get_option('yeshua_evolution_label_id', '');
-            if (!empty($label_id)) {
-                $this->add_label_to_chat($number, $label_id);
-            }
+            // Adiciona etiqueta "Leads" ao chat automaticamente
+            $this->ensure_leads_label($number);
         }
 
         return $response;
@@ -394,6 +391,36 @@ class Yeshua_Evolution {
         }
 
         return [];
+    }
+
+    /**
+     * Garante que a label "Leads" existe e adiciona ao chat.
+     * Busca na API apenas uma vez e cacheia o ID no wp_options.
+     */
+    private function ensure_leads_label($number) {
+        $label_id = get_option('yeshua_evolution_leads_label_id', '');
+
+        // Se já temos o ID cacheado, usa direto
+        if (!empty($label_id)) {
+            $this->add_label_to_chat($number, $label_id);
+            return;
+        }
+
+        // Busca labels na Evolution API
+        $labels = $this->fetch_labels();
+
+        // Procura label "Leads" (case-insensitive)
+        foreach ($labels as $label) {
+            if (strcasecmp($label['name'] ?? '', 'Leads') === 0) {
+                $label_id = $label['id'];
+                update_option('yeshua_evolution_leads_label_id', $label_id);
+                $this->add_label_to_chat($number, $label_id);
+                return;
+            }
+        }
+
+        // Label "Leads" não existe — loga aviso (precisa criar manualmente no WhatsApp Business)
+        error_log('[YESHUA Evolution] Label "Leads" não encontrada no WhatsApp. Crie a etiqueta "Leads" no WhatsApp Business para ativar esta funcionalidade.');
     }
 }
 
