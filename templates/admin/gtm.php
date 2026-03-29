@@ -15,6 +15,7 @@ $gads_id = get_option('yeshua_gads_id', '');
 $gads_label = get_option('yeshua_gads_label', '');
 $thank_you_urls = get_option('yeshua_gtm_thank_you_urls', '');
 $exclude_admins = get_option('yeshua_gtm_exclude_admins', '1');
+$meta_pixel_id = get_option('yeshua_meta_pixel_id', '');
 ?>
 
 <div class="wrap yeshua-admin">
@@ -31,6 +32,36 @@ $exclude_admins = get_option('yeshua_gtm_exclude_admins', '1');
 
     <form method="post" action="options.php" id="yeshua-gtm-form">
         <?php settings_fields('yeshua_gtm'); ?>
+
+        <!-- Meta Pixel -->
+        <div class="yeshua-card">
+            <h2 class="yeshua-card-title">
+                <span class="dashicons dashicons-facebook-alt" style="color: #1877f2;"></span>
+                <?php _e('Meta Pixel (Facebook/Instagram)', 'yeshua-conversoes'); ?>
+            </h2>
+
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="yeshua_meta_pixel_id"><?php _e('Pixel ID', 'yeshua-conversoes'); ?></label>
+                    </th>
+                    <td>
+                        <input type="text"
+                               name="yeshua_meta_pixel_id"
+                               id="yeshua_meta_pixel_id"
+                               value="<?php echo esc_attr($meta_pixel_id); ?>"
+                               class="regular-text"
+                               placeholder="1234567890123456">
+                        <p class="description">
+                            <?php _e('O codigo base do Meta Pixel (fbq init + PageView) sera inserido automaticamente no site. Ao submeter um formulario, o evento InitiateCheckout sera disparado via fbq().', 'yeshua-conversoes'); ?>
+                            <?php if (!empty($meta_pixel_id)) : ?>
+                                <br><span style="color: #00a32a;">&#10003; <?php _e('Pixel ativo:', 'yeshua-conversoes'); ?> <?php echo esc_html($meta_pixel_id); ?></span>
+                            <?php endif; ?>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
         <!-- GTM -->
         <div class="yeshua-card">
@@ -242,6 +273,17 @@ $exclude_admins = get_option('yeshua_gtm_exclude_admins', '1');
                                 <span style="color: #00a32a;">&#10003; <?php _e('Ativo', 'yeshua-conversoes'); ?> (<?php echo esc_html($gads_id); ?>)</span>
                             <?php else : ?>
                                 <span style="color: #999;">&#8212; <?php _e('Google Ads nao configurado', 'yeshua-conversoes'); ?></span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Meta Pixel</strong></td>
+                        <td><code>InitiateCheckout</code></td>
+                        <td>
+                            <?php if (!empty($meta_pixel_id)) : ?>
+                                <span style="color: #00a32a;">&#10003; <?php _e('Ativo', 'yeshua-conversoes'); ?> (<?php echo esc_html($meta_pixel_id); ?>)</span>
+                            <?php else : ?>
+                                <span style="color: #999;">&#8212; <?php _e('Meta Pixel nao configurado', 'yeshua-conversoes'); ?></span>
                             <?php endif; ?>
                         </td>
                     </tr>

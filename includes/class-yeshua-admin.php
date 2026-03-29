@@ -274,6 +274,7 @@ class Yeshua_Admin {
         register_setting('yeshua_gtm', 'yeshua_gtm_thank_you_urls', ['sanitize_callback' => 'sanitize_textarea_field']);
         register_setting('yeshua_gtm', 'yeshua_gtm_exclude_admins', ['sanitize_callback' => 'absint']);
         register_setting('yeshua_gtm', 'yeshua_gtm_external_forms', ['sanitize_callback' => 'sanitize_textarea_field']);
+        register_setting('yeshua_gtm', 'yeshua_meta_pixel_id', ['sanitize_callback' => 'sanitize_text_field']);
 
         // Formulário Lead
         register_setting('yeshua_form_lead', 'yeshua_form_lead_enabled', ['sanitize_callback' => 'absint']);

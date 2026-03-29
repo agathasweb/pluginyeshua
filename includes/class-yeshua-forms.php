@@ -509,6 +509,9 @@ class Yeshua_Forms {
                 'recaptchaRequired' => __('Por favor, complete o ReCaptcha', 'yeshua-conversoes'),
             ],
             'gtm' => Yeshua_Gtm::get_form_conversion_config(),
+            'pixel' => [
+                'id' => get_option('yeshua_meta_pixel_id', ''),
+            ],
         ];
     }
     
@@ -607,6 +610,14 @@ class Yeshua_Forms {
         // Adiciona UTMs
         $utm_fields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
         foreach ($utm_fields as $field) {
+            if (!empty($data[$field])) {
+                $lead_data[$field] = sanitize_text_field($data[$field]);
+            }
+        }
+
+        // Adiciona tracking IDs (gclid, fbclid, fbp, fbc)
+        $tracking_fields = ['gclid', 'fbclid', 'fbp', 'fbc'];
+        foreach ($tracking_fields as $field) {
             if (!empty($data[$field])) {
                 $lead_data[$field] = sanitize_text_field($data[$field]);
             }

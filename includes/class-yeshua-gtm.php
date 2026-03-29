@@ -128,6 +128,28 @@ gtag('config', '<?php echo esc_js($gads_id); ?>');
 <script>window.dataLayer = window.dataLayer || [];</script>
             <?php
         }
+
+        // Meta Pixel base code
+        $meta_pixel_id = get_option('yeshua_meta_pixel_id', '');
+        if (!empty($meta_pixel_id)) {
+            $meta_pixel_id = sanitize_text_field($meta_pixel_id);
+            ?>
+<!-- Meta Pixel Code - YESHUA -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '<?php echo esc_js($meta_pixel_id); ?>');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=<?php echo esc_attr($meta_pixel_id); ?>&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+            <?php
+        }
     }
 
     /**

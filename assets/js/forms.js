@@ -319,6 +319,56 @@
     }
 
     /**
+     * Read a cookie value by name
+     * @param {string} name - Cookie name
+     * @returns {string} Cookie value or empty string
+     */
+    function getCookie(name) {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+        if (parts.length === 2) {
+            return parts.pop().split(';').shift();
+        }
+        return '';
+    }
+
+    /**
+     * Get tracking parameters (gclid, fbclid, _fbp, _fbc) from URL/cookies.
+     * Persists to sessionStorage so data survives page navigation.
+     * @returns {Object} Tracking parameters
+     */
+    function getTrackingData() {
+        var stored = sessionStorage.getItem('yeshua_tracking');
+        if (stored) {
+            try { return JSON.parse(stored); } catch (e) {}
+        }
+
+        var params = new URLSearchParams(window.location.search);
+        var tracking = {};
+
+        var gclid = params.get('gclid');
+        if (gclid) tracking.gclid = gclid;
+
+        var fbclid = params.get('fbclid');
+        if (fbclid) tracking.fbclid = fbclid;
+
+        var fbp = getCookie('_fbp');
+        if (fbp) tracking.fbp = fbp;
+
+        var fbc = getCookie('_fbc');
+        if (!fbc && fbclid) {
+            fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+        }
+        if (fbc) tracking.fbc = fbc;
+
+        if (Object.keys(tracking).length > 0) {
+            sessionStorage.setItem('yeshua_tracking', JSON.stringify(tracking));
+        }
+
+        return tracking;
+    }
+
+    /**
      * Submit form via AJAX
      * @param {HTMLFormElement} form - Form element
      */
@@ -370,6 +420,10 @@
         // Add UTM parameters
         const utmParams = getUtmParams();
         Object.assign(data, utmParams);
+
+        // Add tracking parameters (gclid, fbclid, fbp, fbc)
+        const trackingData = getTrackingData();
+        Object.assign(data, trackingData);
 
         // Submit to API
         try {
@@ -494,6 +548,15 @@
             if (parts.length >= 2) ecData.last_name = parts[parts.length - 1];
         }
         window.enhanced_conversion_data = ecData;
+
+        // Meta Pixel - InitiateCheckout (client-side, SYNC - before any await)
+        if (config.pixel && config.pixel.id && typeof fbq === 'function') {
+            fbq('track', 'InitiateCheckout', {
+                content_name: formType,
+                currency: 'BRL',
+                content_category: formType === 'whatsapp' ? 'whatsapp' : 'lead'
+            });
+        }
 
         // dataLayer push for GTM (SYNC - must happen before any await)
         if (gtm.gtm_id) {
