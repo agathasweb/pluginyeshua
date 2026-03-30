@@ -366,4 +366,93 @@ $meta_pixel_id = get_option('yeshua_meta_pixel_id', '');
             </p>
         <?php endif; ?>
     </div>
+
+    <!-- Seção: Parâmetros de URL para Campanhas -->
+    <div class="yeshua-card" style="margin-top: 24px;">
+        <h2 style="margin-top:0; display:flex; align-items:center; gap:8px;">
+            <span class="dashicons dashicons-tag" style="color:#4285F4;"></span>
+            <?php _e('Como configurar UTMs nas campanhas', 'yeshua-conversoes'); ?>
+        </h2>
+        <p><?php _e('O YESHUA captura automaticamente os parâmetros abaixo da URL ao carregar a página e os envia junto com cada lead. Configure estes parâmetros nos anúncios de cada plataforma:', 'yeshua-conversoes'); ?></p>
+
+        <!-- Google Ads -->
+        <h3 style="margin-bottom:6px;">
+            <span class="dashicons dashicons-google" style="color:#4285F4; vertical-align:middle;"></span>
+            Google Ads
+        </h3>
+        <p style="margin-top:0;"><?php _e('No Google Ads, o gclid é capturado automaticamente (auto-tagging). Adicione os parâmetros UTM no campo "Modelo de acompanhamento" do anúncio, grupo ou campanha:', 'yeshua-conversoes'); ?></p>
+        <code style="display:block; background:#f0f4ff; padding:10px 14px; border-radius:4px; font-size:13px; word-break:break-all; margin-bottom:8px;">{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaign}&utm_term={keyword}&utm_content={creative}</code>
+        <p class="description"><?php _e('Caminho: Campanhas → selecione a campanha → Configurações → Modelo de acompanhamento. O {lpurl} é substituído automaticamente pelo Google pela URL de destino do anúncio.', 'yeshua-conversoes'); ?></p>
+
+        <!-- Meta Ads -->
+        <h3 style="margin-bottom:6px; margin-top:20px;">
+            <span class="dashicons dashicons-facebook" style="color:#1877F2; vertical-align:middle;"></span>
+            Meta Ads (Facebook / Instagram)
+        </h3>
+        <p style="margin-top:0;"><?php _e('No Meta Ads, adicione os parâmetros no campo "Parâmetros de URL" do conjunto de anúncios ou do anúncio individual:', 'yeshua-conversoes'); ?></p>
+        <code style="display:block; background:#f0f4ff; padding:10px 14px; border-radius:4px; font-size:13px; word-break:break-all; margin-bottom:8px;">utm_source=facebook&utm_medium=cpc&utm_campaign={{campaign.name}}&utm_content={{adset.name}}&utm_term={{ad.name}}</code>
+        <p class="description"><?php _e('Caminho: Gerenciador de Anúncios → selecione o anúncio → Editar → URL do site → Parâmetros de URL. O fbclid é adicionado automaticamente pelo Meta.', 'yeshua-conversoes'); ?></p>
+
+        <!-- Tabela de parâmetros -->
+        <h3 style="margin-top:20px; margin-bottom:8px;"><?php _e('Parâmetros capturados pelo YESHUA', 'yeshua-conversoes'); ?></h3>
+        <table class="wp-list-table widefat fixed striped" style="max-width:700px;">
+            <thead>
+                <tr>
+                    <th style="width:140px;"><?php _e('Parâmetro', 'yeshua-conversoes'); ?></th>
+                    <th style="width:110px;"><?php _e('Origem', 'yeshua-conversoes'); ?></th>
+                    <th><?php _e('Como é capturado', 'yeshua-conversoes'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>utm_source</code></td>
+                    <td><?php _e('Todos', 'yeshua-conversoes'); ?></td>
+                    <td><?php _e('Parâmetro na URL', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>utm_medium</code></td>
+                    <td><?php _e('Todos', 'yeshua-conversoes'); ?></td>
+                    <td><?php _e('Parâmetro na URL', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>utm_campaign</code></td>
+                    <td><?php _e('Todos', 'yeshua-conversoes'); ?></td>
+                    <td><?php _e('Parâmetro na URL', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>utm_term</code></td>
+                    <td><?php _e('Todos', 'yeshua-conversoes'); ?></td>
+                    <td><?php _e('Parâmetro na URL', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>utm_content</code></td>
+                    <td><?php _e('Todos', 'yeshua-conversoes'); ?></td>
+                    <td><?php _e('Parâmetro na URL', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>gclid</code></td>
+                    <td>Google Ads</td>
+                    <td><?php _e('Auto-tagging do Google (automático)', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>fbclid</code></td>
+                    <td>Meta Ads</td>
+                    <td><?php _e('Adicionado automaticamente pelo Meta', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>_fbp</code></td>
+                    <td>Meta Pixel</td>
+                    <td><?php _e('Cookie do Meta Pixel (Browser ID)', 'yeshua-conversoes'); ?></td>
+                </tr>
+                <tr>
+                    <td><code>_fbc</code></td>
+                    <td>Meta Pixel</td>
+                    <td><?php _e('Cookie do Meta Pixel (Click ID)', 'yeshua-conversoes'); ?></td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="description" style="margin-top:10px;">
+            ℹ️ <?php _e('Os parâmetros UTM persistem durante toda a sessão do visitante. Se ele entrar pela campanha e só preencher o formulário numa segunda página, os dados ainda serão capturados.', 'yeshua-conversoes'); ?>
+        </p>
+    </div>
 </div>
