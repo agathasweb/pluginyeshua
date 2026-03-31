@@ -380,9 +380,10 @@ $meta_pixel_id = get_option('yeshua_meta_pixel_id', '');
             <span class="dashicons dashicons-google" style="color:#4285F4; vertical-align:middle;"></span>
             Google Ads
         </h3>
-        <p style="margin-top:0;"><?php _e('No Google Ads, o gclid é capturado automaticamente (auto-tagging). Adicione os parâmetros UTM no campo "Modelo de acompanhamento" do anúncio, grupo ou campanha:', 'yeshua-conversoes'); ?></p>
-        <code style="display:block; background:#f0f4ff; padding:10px 14px; border-radius:4px; font-size:13px; word-break:break-all; margin-bottom:8px;">{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaign}&utm_term={keyword}&utm_content={creative}</code>
-        <p class="description"><?php _e('Caminho: Campanhas → selecione a campanha → Configurações → Modelo de acompanhamento. O {lpurl} é substituído automaticamente pelo Google pela URL de destino do anúncio.', 'yeshua-conversoes'); ?></p>
+        <p style="margin-top:0;"><?php _e('No Google Ads, o gclid é capturado automaticamente (auto-tagging). Adicione os parâmetros UTM no campo "Sufixo do URL Final" nas configurações da conta ou campanha:', 'yeshua-conversoes'); ?></p>
+        <code style="display:block; background:#f0f4ff; padding:10px 14px; border-radius:4px; font-size:13px; word-break:break-all; margin-bottom:8px;">utm_source=google&utm_medium=cpc&utm_campaign={campaign}&utm_term={keyword}&utm_content={adgroupid}</code>
+        <p class="description"><?php _e('Caminho: Configurações da conta → Acompanhamento → Sufixo do URL Final. As macros {campaign}, {keyword} e {adgroupid} são resolvidas automaticamente pelo Google no momento do clique — não funcionam ao digitar a URL manualmente no navegador.', 'yeshua-conversoes'); ?></p>
+        <p class="description" style="color:#d63638;"><?php _e('⚠️ Não use o campo "Modelo de acompanhamento" para este fim — ele é necessário apenas quando há um servidor de redirecionamento de terceiros. Deixe-o em branco.', 'yeshua-conversoes'); ?></p>
 
         <!-- Meta Ads -->
         <h3 style="margin-bottom:6px; margin-top:20px;">

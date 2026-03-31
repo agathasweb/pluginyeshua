@@ -549,9 +549,9 @@
         }
         window.enhanced_conversion_data = ecData;
 
-        // Meta Pixel - InitiateCheckout (client-side, SYNC - before any await)
+        // Meta Pixel - Lead (client-side, SYNC - before any await)
         if (config.pixel && config.pixel.id && typeof fbq === 'function') {
-            fbq('track', 'InitiateCheckout', {
+            fbq('track', 'Lead', {
                 content_name: formType,
                 currency: 'BRL',
                 content_category: formType === 'whatsapp' ? 'whatsapp' : 'lead'
