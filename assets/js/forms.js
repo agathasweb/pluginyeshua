@@ -334,33 +334,40 @@
 
     /**
      * Get tracking parameters (gclid, fbclid, _fbp, _fbc) from URL/cookies.
-     * Persists to sessionStorage so data survives page navigation.
+     * Persists gclid/fbclid to sessionStorage (URL params disappear on navigation).
+     * Always re-reads _fbp/_fbc from cookies (Meta Pixel may set them with delay).
+     * @param {boolean} forceRefresh - If true, always re-read everything from cookies/URL
      * @returns {Object} Tracking parameters
      */
-    function getTrackingData() {
-        var stored = sessionStorage.getItem('yeshua_tracking');
-        if (stored) {
-            try { return JSON.parse(stored); } catch (e) {}
-        }
-
-        var params = new URLSearchParams(window.location.search);
+    function getTrackingData(forceRefresh) {
         var tracking = {};
 
+        // Restore cached URL params (gclid/fbclid) from sessionStorage
+        var stored = sessionStorage.getItem('yeshua_tracking');
+        if (stored) {
+            try { tracking = JSON.parse(stored); } catch (e) { tracking = {}; }
+        }
+
+        // Always try to get gclid/fbclid from URL (first visit on landing page)
+        var params = new URLSearchParams(window.location.search);
         var gclid = params.get('gclid');
         if (gclid) tracking.gclid = gclid;
 
         var fbclid = params.get('fbclid');
         if (fbclid) tracking.fbclid = fbclid;
 
+        // Always re-read _fbp from cookie (Meta Pixel may set it with 1-2s delay)
         var fbp = getCookie('_fbp');
         if (fbp) tracking.fbp = fbp;
 
+        // Always re-read _fbc from cookie, or construct from fbclid
         var fbc = getCookie('_fbc');
-        if (!fbc && fbclid) {
-            fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+        if (!fbc && (tracking.fbclid || fbclid)) {
+            fbc = 'fb.1.' + Date.now() + '.' + (tracking.fbclid || fbclid);
         }
         if (fbc) tracking.fbc = fbc;
 
+        // Persist to sessionStorage (so gclid/fbclid survive page navigation)
         if (Object.keys(tracking).length > 0) {
             sessionStorage.setItem('yeshua_tracking', JSON.stringify(tracking));
         }
@@ -422,7 +429,8 @@
         Object.assign(data, utmParams);
 
         // Add tracking parameters (gclid, fbclid, fbp, fbc)
-        const trackingData = getTrackingData();
+        // Force refresh: re-read cookies at submission time to get latest _fbp/_fbc
+        const trackingData = getTrackingData(true);
         Object.assign(data, trackingData);
 
         // Submit to API
