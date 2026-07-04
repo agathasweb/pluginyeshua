@@ -143,14 +143,6 @@ class Yeshua_Api {
     }
     
     /**
-     * Registra tráfego
-     */
-    public function register_traffic($data) {
-        $data['website_id'] = $this->website_id;
-        return $this->request('trafego', 'POST', $data);
-    }
-    
-    /**
      * Registra lead
      */
     public function register_lead($data) {

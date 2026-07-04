@@ -34,13 +34,6 @@ class Yeshua_Rest_Api {
             'permission_callback' => [__CLASS__, 'admin_permission_check'],
         ]);
         
-        // Registrar visita (tracking)
-        register_rest_route(self::NAMESPACE, '/track', [
-            'methods' => 'POST',
-            'callback' => [__CLASS__, 'track_visit'],
-            'permission_callback' => '__return_true',
-        ]);
-        
         // Submeter formulário
         register_rest_route(self::NAMESPACE, '/submit-form', [
             'methods' => 'POST',
@@ -183,25 +176,6 @@ class Yeshua_Rest_Api {
             'success' => true,
             'websites' => $websites,
         ]);
-    }
-    
-    /**
-     * Registra visita
-     */
-    public static function track_visit($request) {
-        $data = $request->get_json_params();
-        
-        // Validação básica
-        if (empty($data['url_completa'])) {
-            return new WP_REST_Response([
-                'success' => false,
-                'message' => __('URL não fornecida', 'yeshua-conversoes'),
-            ], 400);
-        }
-        
-        $result = Yeshua_Tracking::register_visit($data);
-        
-        return new WP_REST_Response($result);
     }
     
     /**

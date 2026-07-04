@@ -35,7 +35,7 @@ class Yeshua_Tracking {
             return;
         }
         
-        add_action('wp_footer', [$this, 'inject_tracking_script'], 100);
+        // Envio de tráfego (pageviews) descontinuado — só conversões de página.
         add_action('template_redirect', [$this, 'check_page_conversion']);
     }
     
@@ -71,32 +71,6 @@ class Yeshua_Tracking {
         }
         
         return false;
-    }
-    
-    /**
-     * Injeta o script de rastreamento
-     */
-    public function inject_tracking_script() {
-        if ($this->should_exclude_visitor()) {
-            return;
-        }
-        
-        $api = Yeshua_Api::get_instance();
-        
-        // Dados para o script
-        $tracking_data = [
-            'ip' => Yeshua_Api::get_client_ip(),
-            'session_id' => Yeshua_Api::get_session_id(),
-            'nonce' => wp_create_nonce('yeshua_tracking'),
-        ];
-        
-        ?>
-        <script type="text/javascript" id="yeshua-tracking-data">
-            window.yeshuaTracking = <?php echo json_encode($tracking_data); ?>;
-            window.yeshuaRestUrl = '<?php echo esc_url(rest_url('yeshua/v1/')); ?>';
-        </script>
-        <script type="text/javascript" src="<?php echo esc_url(YESHUA_PLUGIN_URL . 'assets/js/tracking.js?v=' . YESHUA_VERSION); ?>" defer></script>
-        <?php
     }
     
     /**
@@ -194,40 +168,6 @@ class Yeshua_Tracking {
         add_action('shutdown', function() use ($api, $data) {
             $api->register_conversion($data);
         });
-    }
-    
-    /**
-     * Registra visita via AJAX/REST
-     */
-    public static function register_visit($data) {
-        $api = Yeshua_Api::get_instance();
-        
-        if (!$api->is_configured()) {
-            return ['success' => false, 'message' => 'API não configurada'];
-        }
-        
-        $traffic_data = [
-            'ip' => $data['ip'] ?? Yeshua_Api::get_client_ip(),
-            'dispositivo' => $data['dispositivo'] ?? Yeshua_Api::detect_device(),
-            'navegador' => $data['navegador'] ?? Yeshua_Api::detect_browser(),
-            'sistema_operacional' => $data['sistema_operacional'] ?? Yeshua_Api::detect_os(),
-            'url_completa' => $data['url_completa'] ?? '',
-            'url_path' => $data['url_path'] ?? '',
-            'url_query' => $data['url_query'] ?? '',
-            'referer' => $data['referer'] ?? '',
-            'user_agent' => $data['user_agent'] ?? '',
-            'sessao_id' => $data['sessao_id'] ?? Yeshua_Api::get_session_id(),
-        ];
-        
-        // Adiciona UTMs
-        $utm_fields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-        foreach ($utm_fields as $field) {
-            if (!empty($data[$field])) {
-                $traffic_data[$field] = $data[$field];
-            }
-        }
-        
-        return $api->register_traffic($traffic_data);
     }
 }
 
