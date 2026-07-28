@@ -677,7 +677,28 @@ class Yeshua_Forms {
         
         // Prepara resposta
         $result['success'] = true;
-        
+
+        /**
+         * Dispara quando um lead é capturado com sucesso.
+         *
+         * Ponto de extensão para integrações externas — Meta Conversions API, CRM,
+         * webhooks — sem acoplar o plugin a nenhuma delas. Disparado somente após a
+         * validação do reCAPTCHA e o envio da notificação, de modo que o callback
+         * só recebe leads legítimos.
+         *
+         * Exemplo:
+         *     add_action('yeshua_lead_capturado', function ($lead_data, $form_type) {
+         *         // enviar para CRM, CAPI, etc.
+         *     }, 10, 2);
+         *
+         * @since 1.6.7
+         *
+         * @param array  $lead_data Campos normalizados do lead (nome, email, whatsapp,
+         *                          campos extras, utm_*, gclid, fbclid).
+         * @param string $form_type Origem da submissão: 'lead' ou 'whatsapp'.
+         */
+        do_action('yeshua_lead_capturado', $lead_data, $form_type);
+
         if ($form_type === 'whatsapp') {
             // Formulário WhatsApp - mensagem já foi enviada via Evolution API para o visitante
             $redirect = get_option('yeshua_form_whatsapp_redirect', '');
