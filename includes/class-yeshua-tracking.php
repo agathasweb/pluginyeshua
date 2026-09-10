@@ -37,6 +37,57 @@ class Yeshua_Tracking {
         
         // Envio de tráfego (pageviews) descontinuado — só conversões de página.
         add_action('template_redirect', [$this, 'check_page_conversion']);
+
+        // A origem da visita tem de sobreviver até o envio do formulário, que quase nunca
+        // acontece na página de entrada.
+        add_action('send_headers', [$this, 'persistir_origem'], 20);
+    }
+
+    /**
+     * Campos de origem que viajam da visita até o envio do formulário.
+     */
+    public static function campos_de_origem() {
+        return array(
+            'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+            'gclid', 'fbclid',
+        );
+    }
+
+    /**
+     * Guarda a origem da visita em cookie, no primeiro toque.
+     *
+     * Por que em cookie e no servidor: formulário de terceiro (Elementor, CF7, WPForms) é
+     * enviado por AJAX para admin-ajax.php, e naquela requisição não existe `$_GET` — a
+     * campanha, o termo e o gclid simplesmente não chegam. O `sessionStorage` que o forms.js
+     * usa também não serve: é do navegador, morre com a aba e só o formulário do próprio
+     * plugin o lê. Sem isto, todo lead de formulário externo chega ao painel como se fosse
+     * tráfego direto, mesmo tendo vindo de clique pago.
+     *
+     * Primeiro toque vence: quem chega pelo anúncio e navega por três páginas antes de
+     * preencher continua sendo do anúncio. Sobrescrever a cada página faria a última visita
+     * (quase sempre interna, sem UTM) apagar a origem real.
+     */
+    public function persistir_origem() {
+        if (is_admin() || wp_doing_ajax() || headers_sent()) {
+            return;
+        }
+
+        $validade = time() + (90 * DAY_IN_SECONDS); // mesma janela de atribuição das campanhas
+
+        foreach (self::campos_de_origem() as $campo) {
+            if (empty($_GET[$campo]) || !empty($_COOKIE['yeshua_' . $campo])) {
+                continue;
+            }
+
+            $valor = substr(sanitize_text_field(rawurldecode(wp_unslash($_GET[$campo]))), 0, 300);
+
+            if ($valor === '') {
+                continue;
+            }
+
+            setcookie('yeshua_' . $campo, $valor, $validade, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), false);
+            $_COOKIE['yeshua_' . $campo] = $valor;
+        }
     }
     
     /**

@@ -204,8 +204,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         $ga4_id = get_option('yeshua_ga4_id', '');
         $gads_id = get_option('yeshua_gads_id', '');
         $gads_label = get_option('yeshua_gads_label', '');
+        $meta_pixel_id = get_option('yeshua_meta_pixel_id', '');
 
-        if (empty($gtm_id) && empty($ga4_id) && empty($gads_id)) {
+        if (empty($gtm_id) && empty($ga4_id) && empty($gads_id) && empty($meta_pixel_id)) {
             return;
         }
 
@@ -233,6 +234,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         return { email: email, phone: phone, name: name };
     }
 
+    /**
+     * Identificador único do envio, compartilhado entre o evento do navegador e o da API de
+     * Conversões. É o que faz a Meta contar UMA conversão, e não duas, pelo mesmo lead.
+     *
+     * Fica num campo oculto dentro do formulário para viajar junto com o envio: é o servidor
+     * que manda o lead ao YESHUA, e ele precisa carimbar o MESMO id no evento da CAPI.
+     */
+    function yeshuaEventId(formEl) {
+        var campo = formEl.querySelector('input[name="yeshua_event_id"]');
+
+        if (!campo) {
+            campo = document.createElement('input');
+            campo.type = 'hidden';
+            campo.name = 'yeshua_event_id';
+            campo.value = 'lead_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+            formEl.appendChild(campo);
+        }
+
+        return campo.value;
+    }
+
+    // O campo oculto precisa existir ANTES do envio: formulário de AJAX serializa os campos
+    // no momento do submit, e criá-lo só na hora da conversão chegaria tarde.
+    function yeshuaPrepararFormularios() {
+        document.querySelectorAll(selectorStr).forEach(function (formEl) {
+            yeshuaEventId(formEl);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', yeshuaPrepararFormularios);
+    } else {
+        yeshuaPrepararFormularios();
+    }
+
     function yeshuaFireFormConversion(formEl) {
         var formId = formEl.id || '';
         var formClass = formEl.className || '';
@@ -240,6 +276,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         if (formId) label += '_' + formId;
 
         var userData = yeshuaCollectFormUserData(formEl);
+        var eventId = yeshuaEventId(formEl);
 
         // Set Enhanced Conversions data (raw - GTM hashes automatically)
         var ecData = {};
@@ -291,6 +328,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             gtag('event', 'conversion', {
                 'send_to': '<?php echo esc_js(sanitize_text_field($gads_id)); ?>/<?php echo esc_js(sanitize_text_field($gads_label)); ?>'
             });
+        }
+        <?php endif; ?>
+
+        <?php if (!empty($meta_pixel_id)) : ?>
+        // O formulário externo não disparava evento nenhum no Pixel: só o PageView existia, e
+        // a campanha da Meta otimizava sem nunca saber que aquela visita virou lead. O
+        // `eventID` casa este evento com o da API de Conversões enviada pelo YESHUA.
+        if (typeof fbq === 'function') {
+            fbq('track', 'Lead', {
+                content_name: label,
+                content_category: 'formulario_externo'
+            }, { eventID: eventId });
         }
         <?php endif; ?>
     }

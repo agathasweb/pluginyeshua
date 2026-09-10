@@ -131,14 +131,44 @@ class Yeshua_External_Forms {
             $lead_data['dados_extras'] = array_map('sanitize_text_field', $campos_extras);
         }
 
-        // UTMs da sessão (via cookie/referer)
-        $utm_fields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-        foreach ($utm_fields as $field) {
+        // Origem da visita: UTMs e também os click ids.
+        //
+        // O `gclid`/`fbclid` faltava aqui, e é ele que permite a conversão offline e o
+        // casamento do lead com o clique pago — sem ele o relatório sabe que veio do Google,
+        // mas não de qual clique. Em requisição de AJAX (que é como todo formulário externo
+        // envia) o `$_GET` está vazio: quem responde é o cookie de primeiro toque gravado
+        // por Yeshua_Tracking::persistir_origem().
+        foreach (Yeshua_Tracking::campos_de_origem() as $field) {
             if (!empty($_GET[$field])) {
-                $lead_data[$field] = sanitize_text_field($_GET[$field]);
+                $lead_data[$field] = sanitize_text_field(wp_unslash($_GET[$field]));
             } elseif (!empty($_COOKIE['yeshua_' . $field])) {
-                $lead_data[$field] = sanitize_text_field($_COOKIE['yeshua_' . $field]);
+                $lead_data[$field] = sanitize_text_field(wp_unslash($_COOKIE['yeshua_' . $field]));
             }
+        }
+
+        // Identificador do evento, gerado no navegador no mesmo instante do `fbq('track')`.
+        //
+        // É o que impede a Meta de contar DUAS conversões pelo mesmo lead: o evento do
+        // navegador e o da API de Conversões chegam com o mesmo `event_id` e são deduplicados.
+        // Sem ele, ligar o Pixel no formulário externo dobraria o número de conversões
+        // relatado — parecendo melhora, sendo contagem em dobro.
+        // Lido do POST cru, e não de `$fields`: cada plugin de formulário entrega ao PHP
+        // apenas os campos que ELE conhece (o Elementor devolve só os seus `form_fields`), e
+        // o campo oculto é nosso. No POST ele está sempre, venha de qual formulário vier.
+        $event_id = '';
+        if (!empty($_POST['yeshua_event_id'])) {
+            $event_id = sanitize_text_field(wp_unslash($_POST['yeshua_event_id']));
+        } elseif (!empty($fields['yeshua_event_id'])) {
+            $event_id = sanitize_text_field($fields['yeshua_event_id']);
+        }
+
+        if ($event_id !== '') {
+            $extras_atuais = isset($lead_data['dados_extras']) ? $lead_data['dados_extras'] : [];
+            $extras_atuais['event_id'] = $event_id;
+            // O campo oculto já entrou como campo extra do formulário; sai daqui para não
+            // aparecer duas vezes na ficha do lead com nomes diferentes.
+            unset($extras_atuais['yeshua_event_id']);
+            $lead_data['dados_extras'] = $extras_atuais;
         }
 
         // Registra lead na API YESHUA
