@@ -265,30 +265,48 @@ JS;
                 break;
                 
             case 'v3':
-                $script_url = esc_url_raw($this->get_script_url());
                 $js = <<<JS
                     // A 1.6.9 deixou de carregar o api.js do reCAPTCHA v3 junto com a página (~1,8s de
                     // CPU e 400 KB no celular). Ele entra na primeira interação do visitante (rolar,
                     // tocar, digitar), que já dá ao v3 o comportamento que ele avalia, ou, no mais
-                    // tardar, no envio do formulário, que espera o carregamento. Sempre injeta o
-                    // script com a chave do YESHUA, mesmo que outro plugin (CF7, Elementor) já tenha
-                    // carregado um reCAPTCHA: o execute() só funciona com a chave do render=.
+                    // tardar, no envio do formulário, que espera o carregamento.
+                    // O token sai de um widget invisível próprio (grecaptcha.render + execute(widgetId)),
+                    // e não de execute(siteKey): quando outro plugin (Elementor, CF7) já carregou o
+                    // api.js, uma segunda carga com ?render=CHAVE é ignorada pelo Google, a chave não
+                    // fica registrada e execute(siteKey) nunca responde. O widget funciona com qualquer
+                    // api.js que esteja na página, carregado antes ou depois.
                     (function() {
-                        var carregando = null;
+                        var carregando = null, widget = null;
+                        function pronto() { return window.grecaptcha && typeof grecaptcha.render === 'function'; }
                         window.yeshuaLoadRecaptcha = function() {
                             if (carregando) return carregando;
                             carregando = new Promise(function(resolve, reject) {
-                                var s = document.createElement('script');
-                                s.src = '{$script_url}';
-                                s.async = true;
-                                s.onload = function() { resolve(); };
-                                s.onerror = function() {
-                                    carregando = null;
-                                    reject(new Error('reCAPTCHA não carregou'));
-                                };
-                                document.head.appendChild(s);
+                                if (!pronto() && !document.querySelector('script[src*="/recaptcha/api.js"]')) {
+                                    var s = document.createElement('script');
+                                    s.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+                                    s.async = true;
+                                    document.head.appendChild(s);
+                                }
+                                var inicio = Date.now();
+                                (function esperar() {
+                                    if (pronto()) return grecaptcha.ready(resolve);
+                                    if (Date.now() - inicio > 20000) {
+                                        carregando = null;
+                                        return reject(new Error('reCAPTCHA não carregou'));
+                                    }
+                                    setTimeout(esperar, 100);
+                                })();
                             });
                             return carregando;
+                        };
+                        window.yeshuaRecaptchaWidget = function() {
+                            if (widget === null) {
+                                var div = document.createElement('div');
+                                div.className = 'yeshua-recaptcha-v3';
+                                document.body.appendChild(div);
+                                widget = grecaptcha.render(div, { sitekey: '{$this->site_key}', size: 'invisible', badge: 'bottomright' });
+                            }
+                            return widget;
                         };
                         var eventos = ['pointerdown', 'touchstart', 'keydown', 'scroll', 'mousemove', 'focusin'];
                         function primeiraInteracao() {
@@ -298,20 +316,19 @@ JS;
                         eventos.forEach(function(e) { window.addEventListener(e, primeiraInteracao, { capture: true, passive: true }); });
                     })();
                     window.yeshuaExecuteRecaptcha = function(action, formId) {
-                        return window.yeshuaLoadRecaptcha().then(function() {
-                            return new Promise(function(resolve) {
-                                grecaptcha.ready(function() {
-                                    grecaptcha.execute('{$this->site_key}', {action: action}).then(function(token) {
-                                        var input = document.getElementById('g-recaptcha-response-' + formId);
-                                        if (input) {
-                                            input.value = token;
-                                        }
-                                        window.yeshuaRecaptchaToken = token;
-                                        resolve(token);
-                                    });
-                                });
-                            });
+                        var token = window.yeshuaLoadRecaptcha().then(function() {
+                            return grecaptcha.execute(window.yeshuaRecaptchaWidget(), {action: action});
+                        }).then(function(token) {
+                            var input = document.getElementById('g-recaptcha-response-' + formId);
+                            if (input) {
+                                input.value = token;
+                            }
+                            window.yeshuaRecaptchaToken = token;
+                            return token;
                         });
+                        // Nunca deixa o envio pendurado: sem token em 15s, segue sem ele (o servidor
+                        // recusa e o visitante vê a mensagem de erro, em vez de um botão que não responde).
+                        return Promise.race([token, new Promise(function(resolve) { setTimeout(function() { resolve(''); }, 15000); })]);
                     };
                     // Auto-enable submit buttons for v3
                     document.addEventListener('DOMContentLoaded', function() {
