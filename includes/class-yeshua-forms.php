@@ -631,6 +631,14 @@ class Yeshua_Forms {
             }
             $lead_data['dados_extras'] = $campos_extras;
         }
+
+        // O mesmo id do `fbq('track','Lead')` do navegador: o YESHUA o usa na API de
+        // Conversões para a Meta deduplicar. Fica fora de $campos_extras de propósito — não
+        // é informação para o e-mail/WhatsApp de aviso.
+        if (!empty($data['yeshua_event_id'])) {
+            $lead_data['dados_extras'] = (isset($lead_data['dados_extras']) ? $lead_data['dados_extras'] : [])
+                + ['event_id' => sanitize_text_field($data['yeshua_event_id'])];
+        }
         
         // Registra lead na API YESHUA
         $api = Yeshua_Api::get_instance();
@@ -677,7 +685,19 @@ class Yeshua_Forms {
         
         // Prepara resposta
         $result['success'] = true;
-        
+
+        /**
+         * Lead capturado com sucesso.
+         *
+         * Ponto de extensão para integrações externas — Meta CAPI, CRM, webhooks —
+         * sem acoplar o plugin a nenhuma delas. Disparado só após validação de
+         * reCAPTCHA e envio da notificação.
+         *
+         * @param array  $lead_data  Campos normalizados do lead.
+         * @param string $form_type  'lead' ou 'whatsapp'.
+         */
+        do_action('yeshua_lead_capturado', $lead_data, $form_type);
+
         if ($form_type === 'whatsapp') {
             // Formulário WhatsApp - mensagem já foi enviada via Evolution API para o visitante
             $redirect = get_option('yeshua_form_whatsapp_redirect', '');

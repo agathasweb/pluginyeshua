@@ -433,6 +433,13 @@
         const trackingData = getTrackingData(true);
         Object.assign(data, trackingData);
 
+        // Identificador do evento, compartilhado entre o Pixel (fbq, no navegador) e a API de
+        // Conversões (enviada pelo YESHUA a partir do lead). Sem ele a Meta conta DUAS
+        // conversões por lead do modal. Os formulários externos já faziam isso desde a 1.6.7.
+        if (!data.yeshua_event_id) {
+            data.yeshua_event_id = 'lead_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+        }
+
         // Submit to API
         try {
             const response = await fetch(config.restUrl + 'submit-form', {
@@ -563,7 +570,7 @@
                 content_name: formType,
                 currency: 'BRL',
                 content_category: formType === 'whatsapp' ? 'whatsapp' : 'lead'
-            });
+            }, formData.yeshua_event_id ? { eventID: formData.yeshua_event_id } : {});
         }
 
         // dataLayer push for GTM (SYNC - must happen before any await)
