@@ -265,17 +265,50 @@ JS;
                 break;
                 
             case 'v3':
+                $script_url = esc_url_raw($this->get_script_url());
                 $js = <<<JS
+                    // A 1.6.9 deixou de carregar o api.js do reCAPTCHA v3 junto com a página (~1,8s de
+                    // CPU e 400 KB no celular). Ele entra na primeira interação do visitante (rolar,
+                    // tocar, digitar), que já dá ao v3 o comportamento que ele avalia, ou, no mais
+                    // tardar, no envio do formulário, que espera o carregamento. Sempre injeta o
+                    // script com a chave do YESHUA, mesmo que outro plugin (CF7, Elementor) já tenha
+                    // carregado um reCAPTCHA: o execute() só funciona com a chave do render=.
+                    (function() {
+                        var carregando = null;
+                        window.yeshuaLoadRecaptcha = function() {
+                            if (carregando) return carregando;
+                            carregando = new Promise(function(resolve, reject) {
+                                var s = document.createElement('script');
+                                s.src = '{$script_url}';
+                                s.async = true;
+                                s.onload = function() { resolve(); };
+                                s.onerror = function() {
+                                    carregando = null;
+                                    reject(new Error('reCAPTCHA não carregou'));
+                                };
+                                document.head.appendChild(s);
+                            });
+                            return carregando;
+                        };
+                        var eventos = ['pointerdown', 'touchstart', 'keydown', 'scroll', 'mousemove', 'focusin'];
+                        function primeiraInteracao() {
+                            eventos.forEach(function(e) { window.removeEventListener(e, primeiraInteracao, true); });
+                            window.yeshuaLoadRecaptcha().catch(function() {});
+                        }
+                        eventos.forEach(function(e) { window.addEventListener(e, primeiraInteracao, { capture: true, passive: true }); });
+                    })();
                     window.yeshuaExecuteRecaptcha = function(action, formId) {
-                        return new Promise(function(resolve) {
-                            grecaptcha.ready(function() {
-                                grecaptcha.execute('{$this->site_key}', {action: action}).then(function(token) {
-                                    var input = document.getElementById('g-recaptcha-response-' + formId);
-                                    if (input) {
-                                        input.value = token;
-                                    }
-                                    window.yeshuaRecaptchaToken = token;
-                                    resolve(token);
+                        return window.yeshuaLoadRecaptcha().then(function() {
+                            return new Promise(function(resolve) {
+                                grecaptcha.ready(function() {
+                                    grecaptcha.execute('{$this->site_key}', {action: action}).then(function(token) {
+                                        var input = document.getElementById('g-recaptcha-response-' + formId);
+                                        if (input) {
+                                            input.value = token;
+                                        }
+                                        window.yeshuaRecaptchaToken = token;
+                                        resolve(token);
+                                    });
                                 });
                             });
                         });

@@ -382,26 +382,10 @@ class Yeshua_Forms {
             return;
         }
         
-        // Tailwind CSS via CDN (com prefixo para evitar conflitos)
-        wp_enqueue_script(
-            'tailwindcss',
-            'https://cdn.tailwindcss.com',
-            [],
-            null,
-            false
-        );
-        
-        // Configuração do Tailwind para usar prefixo (garante objeto antes de setar)
-        wp_add_inline_script('tailwindcss', "
-            window.tailwind = window.tailwind || {};
-            tailwind.config = {
-                prefix: 'ys-',
-                corePlugins: {
-                    preflight: false,
-                }
-            }
-        ", 'before');
-        
+        // O Tailwind via CDN (runtime, prefixo ys-) saiu na 1.6.9: nenhum template usa classe
+        // ys-, então ele não gerava estilo nenhum e custava ~0,8s de bloqueio de renderização
+        // em toda página. O visual do modal vem todo de forms.css.
+
         // Estilos do formulário
         wp_enqueue_style(
             'yeshua-forms',
@@ -436,9 +420,11 @@ class Yeshua_Forms {
             true
         );
         
-        // ReCaptcha
+        // ReCaptcha. O v3 é carregado sob demanda (primeira interação ou envio), pelo
+        // yeshuaLoadRecaptcha() de Yeshua_Recaptcha::get_javascript(); os v2 precisam do
+        // script já no carregamento para desenhar o widget.
         $recaptcha = Yeshua_Recaptcha::get_instance();
-        if ($recaptcha->is_configured()) {
+        if ($recaptcha->is_configured() && $recaptcha->get_version() !== 'v3') {
             wp_enqueue_script(
                 'google-recaptcha',
                 $recaptcha->get_script_url(),
