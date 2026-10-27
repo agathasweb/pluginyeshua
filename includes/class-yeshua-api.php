@@ -56,6 +56,8 @@ class Yeshua_Api {
             'timeout' => 30,
             'headers' => [
                 'X-API-Key' => $key,
+                'X-Yeshua-Plugin-Version' => YESHUA_VERSION,
+                'X-Website-Domain' => home_url(),
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ],
@@ -84,7 +86,7 @@ class Yeshua_Api {
         
         $decoded = json_decode($body, true);
         
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
             return [
                 'success' => false,
                 'message' => __('Resposta inválida da API', 'yeshua-conversoes'),
@@ -92,8 +94,18 @@ class Yeshua_Api {
             ];
         }
         
+        // Lista JSON (ex.: GET websites) vira `data`, para quem chama ler sempre o mesmo formato.
+        // (array_is_list é PHP 8.1; o plugin ainda roda em 8.0)
+        if ($decoded === [] || array_keys($decoded) === range(0, count($decoded) - 1)) {
+            $decoded = ['data' => $decoded];
+        }
         $decoded['http_code'] = $code;
-        
+        if (!isset($decoded['success'])) {
+            $decoded['success'] = $code >= 200 && $code < 300;
+        }
+
+        Yeshua_Encerramento::observar_resposta($endpoint, $code, $decoded);
+
         return $decoded;
     }
     
@@ -171,7 +183,8 @@ class Yeshua_Api {
      * Verifica se está configurado
      */
     public function is_configured() {
-        return !empty($this->api_key) && !empty($this->website_id);
+        // Com token de site (ysp_) o YESHUA já sabe qual é o site: o website_id é opcional.
+        return !empty($this->api_key) && (!empty($this->website_id) || str_starts_with($this->api_key, 'ysp_'));
     }
     
     /**

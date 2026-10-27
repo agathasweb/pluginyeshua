@@ -3,7 +3,7 @@
  * Plugin Name: YESHUA Conversões
  * Plugin URI: https://agathasweb.com
  * Description: Integração completa com API TLC do YESHUA para rastreamento de tráfego, leads e conversões. Inclui formulários modais, integração Evolution API (WhatsApp) e envio de e-mails.
- * Version: 1.6.10
+ * Version: 1.7.0
  * Author: Agathas Web
  * Author URI: https://agathasweb.com
  * License: GPL v2 or later
@@ -20,11 +20,13 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes do plugin
-define('YESHUA_VERSION', '1.6.10');
+define('YESHUA_VERSION', '1.7.0');
 define('YESHUA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('YESHUA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('YESHUA_PLUGIN_BASENAME', plugin_basename(__FILE__));
-define('YESHUA_API_URL', 'https://yeshua.agathasweb.com/api');
+if (!defined('YESHUA_API_URL')) {
+    define('YESHUA_API_URL', 'https://yeshua.agathasweb.com/api'); // sobrescrevível no wp-config (testes)
+}
 
 /**
  * Classe principal do plugin
@@ -70,6 +72,7 @@ final class Yeshua_Conversoes {
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-forms.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-external-forms.php';
         require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-rest-api.php';
+        require_once YESHUA_PLUGIN_DIR . 'includes/class-yeshua-encerramento.php';
     }
 
     /**
@@ -128,6 +131,9 @@ final class Yeshua_Conversoes {
         
         // REST API
         add_action('rest_api_init', [$this, 'register_rest_routes']);
+
+        // Cliente encerrado no YESHUA → apaga credenciais e desativa (checagem diária)
+        add_action('init', ['Yeshua_Encerramento', 'init']);
     }
     
     /**
@@ -218,6 +224,11 @@ final class Yeshua_Conversoes {
             }
         }
         
+        // Reativado depois de um encerramento: volta a checar (o token precisa ser colado de novo)
+        delete_option('yeshua_encerrado_em');
+        Yeshua_Encerramento::desagendar();
+        Yeshua_Encerramento::agendar();
+
         // Limpar rewrite rules
         flush_rewrite_rules();
     }
@@ -226,6 +237,7 @@ final class Yeshua_Conversoes {
      * Desativação do plugin
      */
     public function deactivate() {
+        Yeshua_Encerramento::desagendar();
         flush_rewrite_rules();
     }
     

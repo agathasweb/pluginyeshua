@@ -47,7 +47,7 @@ if (!empty($api_key)) {
             <table class="form-table">
                 <tr>
                     <th scope="row">
-                        <label for="yeshua_api_key"><?php _e('API Key Global', 'yeshua-conversoes'); ?></label>
+                        <label for="yeshua_api_key"><?php _e('Token do site', 'yeshua-conversoes'); ?></label>
                     </th>
                     <td>
                         <div class="yeshua-input-group">
@@ -56,14 +56,14 @@ if (!empty($api_key)) {
                                    id="yeshua_api_key" 
                                    value="<?php echo esc_attr($api_key); ?>" 
                                    class="regular-text"
-                                   placeholder="ysh_sua_chave_api_global_aqui">
+                                   placeholder="ysp_token_do_site">
                             <button type="button" id="yeshua-validate-api" class="button">
                                 <span class="dashicons dashicons-yes-alt"></span>
                                 <?php _e('Validar API', 'yeshua-conversoes'); ?>
                             </button>
                         </div>
                         <p class="description">
-                            <?php _e('Chave API obtida no painel YESHUA em /admin/configuracoes', 'yeshua-conversoes'); ?>
+                            <?php _e('Gerado no YESHUA em Websites → ícone de chave do site. Com ele o plugin só acessa este site e se desativa sozinho se o contrato for encerrado. (A API Key Global antiga ainda funciona durante a transição.)', 'yeshua-conversoes'); ?>
                         </p>
                         <div id="yeshua-api-status" class="yeshua-status-message" style="display: none;"></div>
                     </td>
@@ -77,7 +77,7 @@ if (!empty($api_key)) {
                         <select name="yeshua_website_id" id="yeshua_website_id" class="regular-text">
                             <option value=""><?php _e('-- Selecione um website --', 'yeshua-conversoes'); ?></option>
                             <?php foreach ($websites as $website) : ?>
-                                <option value="<?php echo esc_attr($website['id']); ?>" <?php selected($website_id, $website['id']); ?>>
+                                <option value="<?php echo esc_attr($website['id']); ?>" <?php selected($website_id ?: (count($websites) === 1 ? $website['id'] : ''), $website['id']); ?>>
                                     <?php echo esc_html($website['nome']); ?> (<?php echo esc_html($website['dominio']); ?>)
                                 </option>
                             <?php endforeach; ?>
