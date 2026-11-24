@@ -258,6 +258,10 @@ class Yeshua_Admin {
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_email_template', ['sanitize_callback' => 'sanitize_textarea_field']);
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_redirect', ['sanitize_callback' => 'esc_url_raw']);
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_logo', ['sanitize_callback' => 'esc_url_raw']);
+        // Modo de contato: 'evolution' (mensagem pela Evolution API) ou 'direto' (leva ao wa.me)
+        register_setting('yeshua_form_whatsapp', 'yeshua_whatsapp_modo', ['sanitize_callback' => function ($v) { return $v === 'direto' ? 'direto' : 'evolution'; }]);
+        register_setting('yeshua_form_whatsapp', 'yeshua_whatsapp_direto_numero', ['sanitize_callback' => function ($v) { return preg_replace('/[^0-9]/', '', (string) $v); }]);
+        register_setting('yeshua_form_whatsapp', 'yeshua_whatsapp_direto_texto', ['sanitize_callback' => 'sanitize_textarea_field']);
         // Gatilhos avançados WhatsApp
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_trigger_onload', ['sanitize_callback' => 'absint']);
         register_setting('yeshua_form_whatsapp', 'yeshua_form_whatsapp_trigger_delay', ['sanitize_callback' => 'absint']);

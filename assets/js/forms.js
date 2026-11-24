@@ -463,7 +463,7 @@
                 if (result.redirect) {
                     setTimeout(function() {
                         window.location.href = result.redirect;
-                    }, 1500);
+                    }, result.redirect_delay || 1500);
                 } else {
                     // Close modal after delay
                     setTimeout(function() {
@@ -478,6 +478,12 @@
             }
         } catch (error) {
             console.error('Form submission error:', error);
+            // Modo "direto para o WhatsApp": se o servidor falhar, não perde o cliente
+            var directUrl = config.forms && config.forms.whatsapp && config.forms.whatsapp.directUrl;
+            if (directUrl && data.form_type === 'whatsapp') {
+                window.location.href = directUrl;
+                return;
+            }
             showFormMessage(form, config.i18n.error, 'error');
         } finally {
             setFormLoading(form, false);

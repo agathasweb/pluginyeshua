@@ -16,6 +16,9 @@ $message = get_option('yeshua_form_whatsapp_message', 'Olá {nome}! Recebemos se
 $email_template = get_option('yeshua_form_whatsapp_email_template', "Novo contato via WhatsApp:\n\nNome: {nome}\nE-mail: {email}\nWhatsApp: {whatsapp}");
 $redirect = get_option('yeshua_form_whatsapp_redirect', '');
 $logo = get_option('yeshua_form_whatsapp_logo', '');
+$modo = get_option('yeshua_whatsapp_modo', 'evolution') === 'direto' ? 'direto' : 'evolution';
+$direto_numero = get_option('yeshua_whatsapp_direto_numero', '');
+$direto_texto = get_option('yeshua_whatsapp_direto_texto', 'Olá! Sou {nome}, vim pelo site e quero fazer um orçamento.');
 
 // Gatilhos avançados
 $trigger_onload = get_option('yeshua_form_whatsapp_trigger_onload', '0');
@@ -189,6 +192,49 @@ $custom_css = get_option('yeshua_form_whatsapp_custom_css', '');
             </h2>
             
             <table class="form-table">
+                <tr>
+                    <th scope="row"><?php _e('Direto para o WhatsApp', 'yeshua-conversoes'); ?></th>
+                    <td>
+                        <input type="hidden" name="yeshua_whatsapp_modo" value="evolution">
+                        <label class="yeshua-toggle">
+                            <input type="checkbox"
+                                   name="yeshua_whatsapp_modo"
+                                   id="yeshua_whatsapp_modo"
+                                   value="direto"
+                                   <?php checked($modo, 'direto'); ?>>
+                            <span class="yeshua-toggle-slider"></span>
+                        </label>
+                        <p class="description">
+                            <?php _e('<strong>Ligado:</strong> o lead é salvo no YESHUA e o visitante é levado direto para o WhatsApp da empresa, com a mensagem pronta. <strong>Nada é enviado pela Evolution API</strong> (em nenhum formulário do plugin). <strong>Desligado:</strong> comportamento padrão, a mensagem vai ao visitante pela Evolution API.', 'yeshua-conversoes'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="yeshua_whatsapp_direto_numero"><?php _e('WhatsApp da empresa', 'yeshua-conversoes'); ?></label>
+                    </th>
+                    <td>
+                        <input type="text"
+                               name="yeshua_whatsapp_direto_numero"
+                               id="yeshua_whatsapp_direto_numero"
+                               value="<?php echo esc_attr($direto_numero); ?>"
+                               class="regular-text"
+                               placeholder="5562999999999">
+                        <p class="description"><?php _e('Com DDI e DDD, só números. Usado no modo direto.', 'yeshua-conversoes'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="yeshua_whatsapp_direto_texto"><?php _e('Mensagem pronta', 'yeshua-conversoes'); ?></label>
+                    </th>
+                    <td>
+                        <textarea name="yeshua_whatsapp_direto_texto"
+                                  id="yeshua_whatsapp_direto_texto"
+                                  rows="3"
+                                  class="large-text"><?php echo esc_textarea($direto_texto); ?></textarea>
+                        <p class="description"><?php _e('Texto que já aparece digitado para o visitante enviar. Aceita {nome}, {email}, {whatsapp}, {saudacao}, {site}.', 'yeshua-conversoes'); ?></p>
+                    </td>
+                </tr>
                 <tr>
                     <th scope="row">
                         <label for="yeshua_form_whatsapp_redirect"><?php _e('URL de Redirecionamento', 'yeshua-conversoes'); ?></label>

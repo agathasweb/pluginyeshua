@@ -457,6 +457,8 @@ class Yeshua_Forms {
                     'enabled' => (bool) get_option('yeshua_form_whatsapp_enabled', '1'),
                     'title' => get_option('yeshua_form_whatsapp_title', 'Fale Conosco'),
                     'buttonText' => get_option('yeshua_form_whatsapp_button_text', 'Enviar'),
+                    // Modo direto: link de reserva para não perder o cliente se o envio falhar
+                    'directUrl' => Yeshua_Evolution::modo() === 'direto' ? Yeshua_Evolution::url_direta() : '',
                     'triggers' => [
                         'onload' => (bool) get_option('yeshua_form_whatsapp_trigger_onload', '0'),
                         'delay' => (int) get_option('yeshua_form_whatsapp_trigger_delay', 0),
@@ -646,9 +648,9 @@ class Yeshua_Forms {
             'campos_extras' => $campos_extras,
         ]);
         
-        // Envia mensagem via Evolution API
+        // Envia mensagem via Evolution API (nunca no modo "direto para o WhatsApp")
         $evolution = Yeshua_Evolution::get_instance();
-        if ($evolution->is_configured()) {
+        if (Yeshua_Evolution::envio_ativo()) {
             $message_template = $form_type === 'whatsapp' 
                 ? get_option('yeshua_form_whatsapp_message', '')
                 : get_option('yeshua_form_lead_message', '');
@@ -684,7 +686,12 @@ class Yeshua_Forms {
          */
         do_action('yeshua_lead_capturado', $lead_data, $form_type);
 
-        if ($form_type === 'whatsapp') {
+        if ($form_type === 'whatsapp' && Yeshua_Evolution::modo() === 'direto' && Yeshua_Evolution::url_direta($message_data) !== '') {
+            // Modo direto: o lead já está salvo; o visitante segue para o WhatsApp da empresa
+            $result['redirect'] = Yeshua_Evolution::url_direta($message_data);
+            $result['redirect_delay'] = 700;
+            $result['message'] = __('Pronto! Abrindo o WhatsApp...', 'yeshua-conversoes');
+        } elseif ($form_type === 'whatsapp') {
             // Formulário WhatsApp - mensagem já foi enviada via Evolution API para o visitante
             $redirect = get_option('yeshua_form_whatsapp_redirect', '');
             $result['redirect'] = !empty($redirect) ? $redirect : '';

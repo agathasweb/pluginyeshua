@@ -193,7 +193,7 @@ class Yeshua_External_Forms {
 
         // Envia mensagem via Evolution API
         $evolution = Yeshua_Evolution::get_instance();
-        if ($evolution->is_configured() && !empty($lead_data['telefone'])) {
+        if (Yeshua_Evolution::envio_ativo() && !empty($lead_data['telefone'])) {
             $message_template = get_option('yeshua_external_forms_message', '');
             if (!empty($message_template)) {
                 $message = Yeshua_Evolution::process_message($message_template, $message_data);

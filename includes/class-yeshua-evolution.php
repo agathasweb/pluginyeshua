@@ -301,6 +301,42 @@ class Yeshua_Evolution {
     }
     
     /**
+     * Modo de contato do WhatsApp configurado no site.
+     *
+     * 'evolution' (padrão, comportamento antigo): o plugin manda a mensagem ao visitante
+     * pela Evolution API. 'direto': o plugin NÃO fala com a Evolution e, depois de salvar
+     * o lead, leva o visitante para o WhatsApp da empresa (wa.me) com o texto pronto.
+     * Útil quando o número da empresa não pode ter uma conexão de WhatsApp Web nossa
+     * (ex.: já usa outro sistema não oficial, como o DigiSac).
+     */
+    public static function modo() {
+        return get_option('yeshua_whatsapp_modo', 'evolution') === 'direto' ? 'direto' : 'evolution';
+    }
+
+    /**
+     * Pode mandar mensagem pela Evolution? Só no modo 'evolution' e com a API configurada.
+     */
+    public static function envio_ativo() {
+        return self::modo() === 'evolution' && self::get_instance()->is_configured();
+    }
+
+    /**
+     * Link wa.me do modo direto, com o texto já preenchido com os dados do lead.
+     * Devolve '' se o número da empresa não estiver configurado.
+     */
+    public static function url_direta($data = []) {
+        $numero = preg_replace('/[^0-9]/', '', (string) get_option('yeshua_whatsapp_direto_numero', ''));
+        if ($numero === '') {
+            return '';
+        }
+        $texto = (string) get_option('yeshua_whatsapp_direto_texto', 'Olá! Sou {nome}, vim pelo site e quero fazer um orçamento.');
+        $texto = trim(self::process_message($texto, $data));
+        // Sem nome (ex.: link de reserva usado quando o envio falha), não sobra "Sou ,".
+        $texto = preg_replace('/\s+([,.!?])/u', '$1', preg_replace('/Sou\s*,\s*/u', '', $texto));
+        return self::generate_whatsapp_url($numero, $texto);
+    }
+
+    /**
      * Gera URL do WhatsApp Web/App
      */
     public static function generate_whatsapp_url($number, $message = '') {

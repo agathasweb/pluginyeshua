@@ -363,7 +363,15 @@ class Yeshua_Rest_Api {
         if ($test_mode === 'full' || $test_mode === 'evolution_only') {
             $evolution = Yeshua_Evolution::get_instance();
             
-            if ($evolution->is_configured()) {
+            if (Yeshua_Evolution::modo() === 'direto') {
+                $results['tests']['evolution'] = [
+                    'name' => 'WhatsApp direto',
+                    'success' => Yeshua_Evolution::url_direta($message_data) !== '',
+                    'message' => Yeshua_Evolution::url_direta($message_data) !== ''
+                        ? sprintf(__('Modo direto: nada é enviado pela Evolution. O visitante seria levado para %s', 'yeshua-conversoes'), Yeshua_Evolution::url_direta($message_data))
+                        : __('Modo direto sem número de WhatsApp configurado', 'yeshua-conversoes'),
+                ];
+            } elseif ($evolution->is_configured()) {
                 $message_template = $form_type === 'whatsapp' 
                     ? get_option('yeshua_form_whatsapp_message', '')
                     : get_option('yeshua_form_lead_message', '');
